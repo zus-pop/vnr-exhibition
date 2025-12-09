@@ -16,7 +16,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const setPersons = userPersonStore((state) => state.setPersons);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8000"); // Change to your backend URL
+    console.log(
+      "Connecting to socket server...",
+      process.env.NEXT_PUBLIC_SERVER_URL
+    );
+    const newSocket = io(process.env.NEXT_PUBLIC_SERVER_URL); // Change to your backend URL
     setSocket(newSocket);
 
     // Person joined

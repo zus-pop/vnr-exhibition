@@ -264,11 +264,11 @@ const ExhibitionPage = () => {
     mode: {
       value: "camera",
       options: ["camera", "first person"],
-      label: "View Mode",
+      label: "Chế độ xem",
     },
     edit: {
       value: false,
-      label: "Edit Mode",
+      label: "Chế độ chỉnh sửa",
     },
   });
   const { progress } = useProgress();
