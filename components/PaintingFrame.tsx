@@ -81,12 +81,12 @@ interface PaintingFrameProps {
   isOpen?: boolean;
 }
 
-export function PaintingFrame(
+export default function PaintingFrame(
   props: JSX.IntrinsicElements["group"] & PaintingFrameProps
 ) {
   const groupRef = useRef<THREE.Group>(null);
   const { nodes, materials } = useGLTF(
-    "/frames/painting_frame.glb"
+    "https://firebasestorage.googleapis.com/v0/b/artchain-c46a7.firebasestorage.app/o/3D-models%2Fpainting_frame.glb?alt=media&token=5b003fdd-bd8e-4313-ac5d-562ce8ab002b"
   ) as unknown as GLTFResult;
   const texture = useTexture(props.item.imageUrl);
   const octahedronGeometryRef = useRef<THREE.Mesh>(null);
@@ -391,4 +391,6 @@ export function PaintingFrame(
   );
 }
 
-useGLTF.preload("/frames/painting_frame.glb");
+useGLTF.preload(
+  "https://firebasestorage.googleapis.com/v0/b/artchain-c46a7.firebasestorage.app/o/3D-models%2Fpainting_frame.glb?alt=media&token=5b003fdd-bd8e-4313-ac5d-562ce8ab002b"
+);

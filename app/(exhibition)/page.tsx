@@ -16,7 +16,7 @@ import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
 import ExhibitionModel from "../../components/ExhibitionModel";
 import LocalModel from "../../components/LocalModel";
-import { PaintingFrame } from "../../components/PaintingFrame";
+import PaintingFrame from "../../components/PaintingFrame";
 import RemoteModel from "../../components/RemoteModel";
 import { useCameraMovement } from "../../hooks/useCameraMovement";
 import { useSocket } from "../../provider/SocketProvider";
