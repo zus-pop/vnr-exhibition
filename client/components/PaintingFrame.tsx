@@ -4,7 +4,7 @@ Command: npx gltfjsx@6.5.3 .\public\frames\painting_frame.glb -t -r public
 */
 
 import { Html, useGLTF, useTexture } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { ThreeEvent, useFrame } from "@react-three/fiber";
 import { JSX, useRef } from "react";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
@@ -81,9 +81,13 @@ interface PaintingFrameProps {
   isOpen?: boolean;
 }
 
-export default function PaintingFrame(
-  props: JSX.IntrinsicElements["group"] & PaintingFrameProps
-) {
+export default function PaintingFrame({
+  onClick,
+  onContextMenu,
+  onPointerOver,
+  onPointerOut,
+  ...props
+}: JSX.IntrinsicElements["group"] & PaintingFrameProps) {
   const groupRef = useRef<THREE.Group>(null);
   const { nodes, materials } = useGLTF(
     "/frames/painting_frame.glb"
@@ -99,26 +103,11 @@ export default function PaintingFrame(
   });
 
   return (
-    <group
-      {...props}
-      ref={groupRef}
-      dispose={null}
-      //   onClick={(e) => {
-      //     e.stopPropagation();
-      //     if (props.onMoveCamera && groupRef.current) {
-      //       props.onMoveCamera(groupRef.current);
-      //     }
-      //   }}
-    >
+    <group {...props} ref={groupRef} dispose={null}>
       <group
         position={[0, 1.177, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         scale={1.552}
-        onClick={() => {
-          if (props.onMoveCamera && groupRef.current) {
-            props.onMoveCamera(groupRef.current);
-          }
-        }}
       >
         <group rotation={[Math.PI / 2, 0, 0]}>
           <group
@@ -331,6 +320,19 @@ export default function PaintingFrame(
             position={[0.001, -0.01, -0.049]}
             rotation={[0, -1.571, 0]}
             scale={0.319}
+            onClick={(e) => {
+              if (props.mode === "first person") return;
+              if (props.onMoveCamera && groupRef.current) {
+                props.onMoveCamera(groupRef.current);
+              }
+              if (onClick) {
+                (onClick as (event: ThreeEvent<MouseEvent>) => void)(e);
+              }
+            }}
+            name={props.name}
+            onContextMenu={onContextMenu}
+            onPointerOver={onPointerOver}
+            onPointerOut={onPointerOut}
           >
             <meshBasicMaterial
               map={texture}

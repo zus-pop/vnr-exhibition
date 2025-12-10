@@ -1,7 +1,14 @@
 "use client";
+import ExhibitionModel from "@/components/ExhibitionModel";
+import LocalModel from "@/components/LocalModel";
+import RemoteModel from "@/components/RemoteModel";
 import d from "@/data/data.json";
+import { useCameraMovement } from "@/hooks/useCameraMovement";
+import { useSocket } from "@/provider/SocketProvider";
+import { userPersonStore } from "@/stores/person";
 import {
   CameraControls,
+  Effects,
   Environment,
   Html,
   TransformControls,
@@ -14,13 +21,8 @@ import { button, useControls } from "leva";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
-import ExhibitionModel from "../../components/ExhibitionModel";
-import LocalModel from "../../components/LocalModel";
-import PaintingFrame from "../../components/PaintingFrame";
-import RemoteModel from "../../components/RemoteModel";
-import { useCameraMovement } from "../../hooks/useCameraMovement";
-import { useSocket } from "../../provider/SocketProvider";
-import { userPersonStore } from "../../stores/person";
+import PaintingFrame from "@/components/PaintingFrame";
+import { Bloom, EffectComposer } from "@react-three/postprocessing";
 
 export type Data = {
   name: string;
@@ -211,7 +213,7 @@ const ExhibitionScene = ({
                 }}
                 name={item.name}
                 onMoveCamera={
-                  mode === "camera" ? moveCameraToObject : undefined
+                  mode === "camera" && !edit ? moveCameraToObject : undefined
                 }
                 item={item}
                 position={[
@@ -241,6 +243,7 @@ const ExhibitionScene = ({
           )}
           <CameraControls
             ref={cameraControlsRef}
+            makeDefault
             minDistance={1}
             maxDistance={9}
             minPolarAngle={0} // Prevent tilting below the horizon (straight down)
