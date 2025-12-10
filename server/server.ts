@@ -32,7 +32,7 @@ const persons: Person[] = [];
 app.use(express.json());
 
 // Basic route
-app.get("/api/persons", (req: any, res: any) => {
+app.get("/api/persons", (req, res) => {
   const excludeId = req.query.excludeId;
   const filteredPersons = persons.filter((p) => p.id !== excludeId);
   return res.json(filteredPersons);
