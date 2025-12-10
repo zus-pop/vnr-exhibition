@@ -32,10 +32,7 @@ export default function ExhibitionModel(props: JSX.IntrinsicElements["group"]) {
   const { nodes, materials } = useGLTF(
     "/circle-transformed.glb"
   ) as unknown as GLTFResult;
-  //   materials.Emissive.emissive = new THREE.Color(1, 1, 1); // White emissive for glow
-  //   materials.Emissive.emissiveIntensity = 1; // Intensity of emission
-  //   materials.Walls.emissive = new THREE.Color(1, 1, 1); // Subtle emissive for walls
-  //   materials.Walls.emissiveIntensity = 1;
+
   return (
     <group {...props} dispose={null}>
       <mesh

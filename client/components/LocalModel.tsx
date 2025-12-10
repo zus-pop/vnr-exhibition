@@ -13,9 +13,10 @@ import { CapsuleCollider } from "@react-three/rapier";
 interface LocalModelProps {
   hairColor?: string;
   skinColor?: string;
+  mode?: "first person" | "third person";
 }
 
-const LocalModel = ({ hairColor, skinColor }: LocalModelProps) => {
+const LocalModel = ({ hairColor, skinColor, mode }: LocalModelProps) => {
   const { socket } = useSocket();
   const modelRef = useRef<CustomEcctrlRigidBody>(null);
   const previousPosition = useRef({ x: 0, y: 0, z: 0 });
@@ -97,9 +98,11 @@ const LocalModel = ({ hairColor, skinColor }: LocalModelProps) => {
     Jump: "Static Pose",
     JumpIdle: "Static Pose",
     JumpLand: "Idle",
-    Fall: "idle", // This is for falling from high sky
+    Fall: "Idle", // This is for falling from high sky
     // Currently support four additional animations
     action1: "Surprise",
+    action2: "Clapping",
+    action3: "Clapping",
     action4: "Clapping",
   };
 
@@ -111,20 +114,21 @@ const LocalModel = ({ hairColor, skinColor }: LocalModelProps) => {
       map={keyboardMap}
     >
       <Ecctrl
+        key={mode}
         animated
         position-y={-0.8}
         camCollision={false}
-        camInitDis={-0.01}
-        camMinDis={-0.01}
-        camMaxDis={-0.01}
+        camInitDis={mode === "first person" ? -0.01 : 3}
+        camMinDis={mode === "first person" ? -0.01 : 3}
+        camMaxDis={mode === "first person" ? -0.01 : 3}
         camFollowMult={1000}
         camLerpMult={1000}
         turnVelMultiplier={1}
         turnSpeed={100}
-        mode="CameraBasedMovement"
+        mode={mode === "first person" ? "CameraBasedMovement" : undefined}
         ref={modelRef}
       >
-        <CapsuleCollider args={[0.2, 0.15]} />
+        {/* <CapsuleCollider args={[0.1, 0.15]} /> */}
         <EcctrlAnimation
           characterURL={characterURL}
           animationSet={animationSet}

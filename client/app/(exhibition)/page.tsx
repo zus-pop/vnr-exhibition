@@ -1,36 +1,38 @@
 "use client";
 import ExhibitionModel from "@/components/ExhibitionModel";
 import LocalModel from "@/components/LocalModel";
+import PaintingFrame from "@/components/PaintingFrame";
 import RemoteModel from "@/components/RemoteModel";
-import d from "@/data/data.json";
 import { useCameraMovement } from "@/hooks/useCameraMovement";
 import { useSocket } from "@/provider/SocketProvider";
 import { userPersonStore } from "@/stores/person";
 import {
   CameraControls,
-  Effects,
   Environment,
   Html,
+  Sparkles,
   TransformControls,
   useCursor,
   useProgress,
 } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Physics, RigidBody } from "@react-three/rapier";
+import axios from "axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { button, useControls } from "leva";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
-import PaintingFrame from "@/components/PaintingFrame";
-import { Bloom, EffectComposer } from "@react-three/postprocessing";
+import { useSpring } from "@react-spring/three";
 
 export type Data = {
+  id: string;
   name: string;
   title: string;
   description: string;
   imageUrl: string;
   position: number[];
-  rotation: number[];
+  rotation: [number, number, number, string?];
   scale: number[];
 };
 
@@ -42,8 +44,12 @@ interface ExhibitionSceneProps {
   mode: string;
   edit: boolean;
   selectedItem: Data | null;
+  data: Data[];
 }
-const state = proxy<{ current: string | null; mode: number }>({
+const state = proxy<{
+  current: string | null;
+  mode: number;
+}>({
   current: null,
   mode: 0,
 });
@@ -59,8 +65,42 @@ const ExhibitionScene = ({
   mode,
   edit,
   selectedItem,
+  data,
 }: ExhibitionSceneProps) => {
-  const data = d as Data[];
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (
+      updates: {
+        name: string;
+        position: number[];
+        rotation: [number, number, number, string?];
+        scale: number[];
+      }[]
+    ) => {
+      for (const update of updates) {
+        const existing = data.find((d) => d.name === update.name);
+        if (existing) {
+          await axios.put(
+            `${process.env.NEXT_PUBLIC_MOCK_API}/events/${existing.id}`,
+            {
+              ...existing,
+              position: update.position,
+              rotation: update.rotation,
+              scale: update.scale,
+            }
+          );
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      alert("Saved!");
+    },
+    onError: (error) => {
+      console.error("Error saving data:", error);
+      alert("Error saving data.");
+    },
+  });
   const groupRef = useRef<Group>(null);
   const snap = useSnapshot(state);
   const scene = useThree((state) => state.scene);
@@ -71,37 +111,45 @@ const ExhibitionScene = ({
   const moveCameraToObject = useCameraMovement(cameraControlsRef);
   const persons = userPersonStore((state) => state.persons);
   const { socket } = useSocket();
-
   useControls({
-    Save: button(async () => {
-      const items = groupRef.current?.children.map((child) => ({
-        name: child.name,
-        position: child.position.toArray(),
-        rotation: child.rotation.toArray(),
-        scale: child.scale.toArray(),
-      }));
-      try {
-        const response = await fetch("/api/save-data", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(items),
-        });
-        if (response.ok) {
-          alert("Data saved successfully!");
-        } else {
-          alert("Failed to save data.");
-        }
-      } catch (error) {
-        console.error("Error saving data:", error);
-        alert("Error saving data.");
-      }
-    }),
+    Save: button(
+      () => {
+        const items = groupRef.current?.children.map((child) => ({
+          name: child.name,
+          position: child.position.toArray(),
+          rotation: child.rotation.toArray(),
+          scale: child.scale.toArray(),
+        }));
+        mutate(items || []);
+      },
+      { disabled: isPending }
+    ),
   });
   const [currentFrame, setCurrentFrame] = useState<Data | null>(null);
 
+  useSpring({
+    dummy: 1,
+    from: 0,
+    delay: 300,
+    onRest: () => {
+      moveCameraToObject(scene.getObjectByName("exhibition")!, {
+        offsetX: -4,
+        zoom: 0.8,
+      });
+    },
+  });
+  useEffect(() => {
+    if (mode === "camera" && cameraControlsRef.current) {
+      moveCameraToObject(scene.getObjectByName("exhibition")!, {
+        offsetX: -4,
+        zoom: 0.8,
+      });
+    }
+  }, [mode, cameraControlsRef, scene, moveCameraToObject]);
+
   // Proximity detection for first person mode
   useFrame(() => {
-    if (mode !== "first person") return;
+    if (mode === "camera") return;
 
     let closestFrame: Data | null = null;
     let minDistance = Infinity;
@@ -123,7 +171,7 @@ const ExhibitionScene = ({
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (
-        mode === "first person" &&
+        mode !== "camera" &&
         event.key.toLowerCase() === "e" &&
         currentFrame
       ) {
@@ -134,6 +182,7 @@ const ExhibitionScene = ({
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [mode, currentFrame, onShowPanel]);
+
   return (
     <mesh>
       <ambientLight intensity={2} />
@@ -152,13 +201,14 @@ const ExhibitionScene = ({
       <pointLight position={[0, 5, 5]} intensity={0.6} />
       <Environment preset="city" />
       <Physics timeStep={"vary"}>
-        {mode === "first person" &&
+        {(mode === "first person" || mode === "third person") &&
           persons.map((p) =>
             p.id === socket.id ? (
               <LocalModel
                 key={p.id}
                 hairColor={p.colors.hairColor}
                 skinColor={p.colors.skinColor}
+                mode={mode}
               />
             ) : (
               <RemoteModel
@@ -170,13 +220,14 @@ const ExhibitionScene = ({
             )
           )}
         <RigidBody type="fixed" colliders="trimesh">
-          <ExhibitionModel />
+          <ExhibitionModel name="exhibition" />
         </RigidBody>
         <group ref={groupRef}>
           {data.map((item) => {
             return (
               <PaintingFrame
                 key={item.name}
+                name={item.name}
                 onShowPanel={onShowPanel}
                 showIcon={showIcon}
                 mode={mode}
@@ -189,29 +240,28 @@ const ExhibitionScene = ({
                   (state.current = null)
                 }
                 onContextMenu={(e) =>
-                  snap.current === e.eventObject.name &&
+                  snap.current === item.name &&
                   mode === "camera" &&
                   edit &&
                   (e.stopPropagation(),
                   (state.mode = (snap.mode + 1) % modes.length))
                 }
                 onPointerOver={(e) => {
-                  if (mode === "first person") return;
+                  if (mode !== "camera") return;
                   e.stopPropagation();
                   setHovered(true);
                 }}
-                onPointerOut={(e) => {
-                  if (mode === "first person") return;
+                onPointerOut={() => {
+                  if (mode !== "camera") return;
                   setHovered(false);
                 }}
                 onClick={(e) => {
-                  if (mode === "first person") return;
+                  if (mode !== "camera") return;
                   e.stopPropagation();
                   if (edit) {
-                    state.current = e.eventObject.name;
+                    state.current = item.name;
                   }
                 }}
-                name={item.name}
                 onMoveCamera={
                   mode === "camera" && !edit ? moveCameraToObject : undefined
                 }
@@ -263,10 +313,23 @@ const ExhibitionScene = ({
 
 const ExhibitionPage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { data = [] } = useQuery({
+    queryKey: ["events"],
+    queryFn: async () => {
+      const response = await axios.get<Data[]>(
+        `${process.env.NEXT_PUBLIC_MOCK_API}/events`
+      );
+      return response.data;
+    },
+  });
   const { mode, edit } = useControls({
     mode: {
       value: "camera",
-      options: ["camera", "first person"],
+      options: {
+        Camera: "camera",
+        "Góc nhìn thứ nhất": "first person",
+        "Góc nhìn thứ ba": "third person",
+      },
       label: "Chế độ xem",
     },
     edit: {
@@ -304,9 +367,16 @@ const ExhibitionPage = () => {
         break;
     }
   };
+  useEffect(() => {
+    if (mode !== "camera") {
+      canvasRef.current?.requestPointerLock();
+    } else {
+      document.exitPointerLock();
+    }
+  }, [mode]);
   return (
     <>
-      {mode === "camera" && ( // Fixed condition to match options
+      {mode === "camera" && (
         <div
           style={{
             position: "fixed",
@@ -427,9 +497,10 @@ const ExhibitionPage = () => {
       )}
       <Canvas
         ref={canvasRef}
+        camera={{ position: [0, 8, 800] }}
         shadows
         onDoubleClick={() => {
-          if (mode !== "first person") return;
+          if (mode === "camera") return;
           if (document.pointerLockElement) {
             document.exitPointerLock();
           } else {
@@ -458,6 +529,7 @@ const ExhibitionPage = () => {
           }
         >
           <ExhibitionScene
+            data={data}
             mode={mode}
             edit={edit}
             cameraControlsRef={cameraControlsRef}
@@ -466,6 +538,7 @@ const ExhibitionPage = () => {
             showIcon={!selectedItem}
             selectedItem={selectedItem}
           />
+          <Sparkles size={30} scale={80} count={800} />
         </Suspense>
       </Canvas>
       {selectedItem &&
@@ -474,8 +547,7 @@ const ExhibitionPage = () => {
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300"
             onClick={() => (
-              mode === "first person" &&
-                canvasRef.current?.requestPointerLock(),
+              mode !== "camera" && canvasRef.current?.requestPointerLock(),
               setSelectedItem(null)
             )}
           >
@@ -485,8 +557,7 @@ const ExhibitionPage = () => {
             >
               <button
                 onClick={() => (
-                  mode === "first person" &&
-                    canvasRef.current?.requestPointerLock(),
+                  mode !== "camera" && canvasRef.current?.requestPointerLock(),
                   setSelectedItem(null)
                 )}
                 className="absolute top-2 right-2 px-3 py-2 bg-black text-white border-none rounded cursor-pointer text-xl"

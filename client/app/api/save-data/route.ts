@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import axios from "axios";
 import { Data } from "../../(exhibition)/page";
 
 export async function POST(request: NextRequest) {
   try {
-    const updates: Data[] = await request.json(); // Array of {name, position, rotation, scale}
-    const filePath = path.join(process.cwd(), "data", "data.json");
-    const currentData: Data[] = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-
-    // Update matching items by name
-    updates.forEach((update) => {
-      const item = currentData.find((item) => item.name === update.name);
-      if (item) {
-        item.position = update.position;
-        item.rotation = update.rotation;
-        item.scale = update.scale;
+    const updates: Data[] = await request.json();
+    for (const update of updates) {
+      const existing = await axios.get(
+        `${process.env.NEXT_PUBLIC_MOCK_API}/events?name=${update.name}`
+      );
+      if (existing.data.length > 0) {
+        const id = existing.data[0].id;
+        await axios.put(
+          `${process.env.NEXT_PUBLIC_MOCK_API}/events/${id}`,
+          update
+        );
       }
-    });
-
-    fs.writeFileSync(filePath, JSON.stringify(currentData, null, 2));
+    }
     return NextResponse.json({ message: "Data updated successfully" });
   } catch (error) {
     return NextResponse.json(

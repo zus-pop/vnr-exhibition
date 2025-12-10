@@ -9,6 +9,7 @@ import { JSX, useRef } from "react";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 import { Data } from "../app/(exhibition)/page";
+import { CameraMovementOptions } from "../hooks/useCameraMovement";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -72,7 +73,10 @@ type GLTFResult = GLTF & {
 };
 
 interface PaintingFrameProps {
-  onMoveCamera?: (object: THREE.Object3D) => Promise<void>;
+  onMoveCamera?: (
+    object: THREE.Object3D,
+    options?: CameraMovementOptions
+  ) => void;
   onShowPanel: (item: Data) => void;
   showIcon: boolean;
   item: Data;
@@ -329,7 +333,6 @@ export default function PaintingFrame({
                 (onClick as (event: ThreeEvent<MouseEvent>) => void)(e);
               }
             }}
-            name={props.name}
             onContextMenu={onContextMenu}
             onPointerOver={onPointerOver}
             onPointerOut={onPointerOut}
@@ -340,14 +343,14 @@ export default function PaintingFrame({
               polygonOffsetFactor={-1}
             />
           </mesh>
-          {props.mode === "first person" ? (
+          {props.mode !== "camera" ? (
             props.isClose && (
               <>
                 <mesh
                   ref={octahedronGeometryRef}
                   position={[0.7, 0.44, 0.05]}
                   onClick={() => {
-                    if (props.mode === "first person") return;
+                    if (props.mode !== "camera") return;
                     props.onShowPanel(props.item);
                   }}
                 >
@@ -379,7 +382,7 @@ export default function PaintingFrame({
               ref={octahedronGeometryRef}
               position={[0.7, 0.44, 0.05]}
               onClick={() => {
-                if (props.mode === "first person") return;
+                if (props.mode !== "camera") return;
                 props.onShowPanel(props.item);
               }}
             >

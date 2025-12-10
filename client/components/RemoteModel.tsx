@@ -131,7 +131,12 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
     };
   }, []);
   return (
-    <RigidBody ref={modelRef} type="kinematicPosition" colliders="hull">
+    <RigidBody
+      position-y={0.9}
+      ref={modelRef}
+      type="kinematicPosition"
+      colliders="hull"
+    >
       <ChibiGuy
         hairColor={hairColor}
         skinColor={skinColor}
