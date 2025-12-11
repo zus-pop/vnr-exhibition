@@ -521,7 +521,7 @@ const ExhibitionScene = ({
 const ExhibitionPage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const snap = useSnapshot(state);
-  const { data = [] } = useQuery({
+  const { data = [], isPending } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
       const response = await axios.get<Data[]>(
@@ -582,6 +582,21 @@ const ExhibitionPage = () => {
       }, 200);
     }
   }, [snap.viewMode]);
+
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+      fontSize: "24px",
+      color: "white",
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
+    }}
+  >
+    Đang tải...
+  </div>;
+
   return (
     <>
       {snap.viewMode === "camera" && (
@@ -725,6 +740,7 @@ const ExhibitionPage = () => {
                 fontSize: "24px",
                 textAlign: "center",
                 whiteSpace: "nowrap",
+                backgroundColor: "black",
               }}
             >
               <div>

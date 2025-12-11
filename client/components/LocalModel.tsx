@@ -6,9 +6,8 @@ import Ecctrl, {
   EcctrlAnimation,
   useGame,
 } from "ecctrl";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import ChibiGuy from "./ChibiGuy";
-import { useControls } from "leva";
 
 interface LocalModelProps {
   hairColor?: string;
@@ -118,11 +117,11 @@ const LocalModel = ({
     action4: "Clapping",
   };
 
-  const { capsuleHalfHeight, capsuleRadius, floatHeight } = useControls({
-    capsuleHalfHeight: { value: 0.1, min: 0.1, max: 2, step: 0.01 },
-    capsuleRadius: { value: 0.4, min: 0.1, max: 2, step: 0.01 },
-    floatHeight: { value: 0, min: 0, max: 2, step: 0.01 },
-  });
+  //   const { capsuleHalfHeight, capsuleRadius, floatHeight } = useControls({
+  //     capsuleHalfHeight: { value: 0.1, min: 0.1, max: 2, step: 0.01 },
+  //     capsuleRadius: { value: 0.4, min: 0.1, max: 2, step: 0.01 },
+  //     floatHeight: { value: 0, min: 0, max: 2, step: 0.01 },
+  //   });
   return (
     <KeyboardControls
       onChange={(_, pressed) => {
@@ -146,9 +145,9 @@ const LocalModel = ({
         mode={mode === "first person" ? "CameraBasedMovement" : undefined}
         ref={localModelRef}
         position={[0, 4, 0]}
-        capsuleHalfHeight={capsuleHalfHeight}
-        capsuleRadius={capsuleRadius}
-        floatHeight={floatHeight}
+        capsuleHalfHeight={0.1}
+        capsuleRadius={0.4}
+        floatHeight={0}
       >
         <EcctrlAnimation
           characterURL={characterURL}
