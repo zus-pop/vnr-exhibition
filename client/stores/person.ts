@@ -20,7 +20,7 @@ interface PersonState {
   setPersons: (persons: Person[]) => void;
 }
 
-export const userPersonStore = create<PersonState>()(
+export const usePersonStore = create<PersonState>()(
   devtools((set) => ({
     persons: [],
     addPerson: (person) =>

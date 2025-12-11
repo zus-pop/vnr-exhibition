@@ -9,7 +9,7 @@ import {
   useCameraMovement,
 } from "@/hooks/useCameraMovement";
 import { useSocket } from "@/provider/SocketProvider";
-import { userPersonStore } from "@/stores/person";
+import { usePersonStore } from "@/stores/person";
 import { useSpring } from "@react-spring/three";
 import {
   CameraControls,
@@ -53,7 +53,6 @@ interface ExhibitionSceneProps {
   onShowPanel: (item: Data) => void;
   showIcon: boolean;
   mode: string;
-  edit: boolean | undefined;
   selectedItem: Data | null;
   data: Data[];
   isEditDisabled?: boolean;
@@ -79,7 +78,6 @@ const ExhibitionScene = ({
   onShowPanel,
   showIcon,
   mode,
-  edit,
   selectedItem,
   data,
   isEditDisabled,
@@ -124,9 +122,14 @@ const ExhibitionScene = ({
   const localModelRef = useRef<CustomEcctrlRigidBody | null>(null);
   useCursor(snap.hovered);
   const moveCameraToObject = useCameraMovement(cameraControlsRef);
-  const persons = userPersonStore((state) => state.persons);
+  const persons = usePersonStore((state) => state.persons);
   const { socket } = useSocket();
-  useControls({
+  const { edit } = useControls({
+    edit: {
+      value: false,
+      label: "Chỉnh sửa",
+      disabled: isEditDisabled,
+    },
     "Danh sách": folder(
       (() => {
         const obj: Record<string, any> = {};
@@ -533,17 +536,12 @@ const ExhibitionPage = () => {
   const isEditDisabled = useMemo(() => {
     return data.find((d) => d.id === "0")?.config.isEditDisabled || false;
   }, [data]);
-  const { edit } = useControls({
+  useControls({
     "Chế độ xem": buttonGroup({
       Camera: () => (state.viewMode = "camera"),
       "Góc nhìn thứ nhất": () => (state.viewMode = "first person"),
       "Góc nhìn thứ ba": () => (state.viewMode = "third person"),
     }),
-    edit: {
-      value: false,
-      label: "Chỉnh sửa",
-      disabled: isEditDisabled,
-    },
   });
   const { progress } = useProgress();
   const cameraControlsRef = useRef<CameraControls>(null);
@@ -720,7 +718,7 @@ const ExhibitionPage = () => {
       )}
       <Canvas
         ref={canvasRef}
-        // camera={{ position: [0, 8, 3600] }}
+        camera={{ position: [0, 8, 3600] }}
         shadows
         onDoubleClick={() => {
           if (snap.viewMode === "camera") return;
@@ -755,7 +753,6 @@ const ExhibitionPage = () => {
           <ExhibitionScene
             data={data.filter((d) => Number(d.id) !== 0)}
             mode={snap.viewMode}
-            edit={edit}
             cameraControlsRef={cameraControlsRef}
             canvasRef={canvasRef}
             onShowPanel={(item) => setSelectedItem(item)}

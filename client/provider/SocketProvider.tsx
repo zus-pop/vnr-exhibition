@@ -1,7 +1,6 @@
-// SocketContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { Person, userPersonStore } from "@/stores/person";
+import { Person, usePersonStore } from "@/stores/person";
 
 interface SocketContextType {
   socket: Socket;
@@ -13,7 +12,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const setPersons = userPersonStore((state) => state.setPersons);
+  const setPersons = usePersonStore((state) => state.setPersons);
 
   useEffect(() => {
     console.log(
