@@ -39,6 +39,7 @@ export type Data = {
     isEditDisabled: boolean;
   };
   minigameUrl: string | null;
+  minigameMessage: string;
   name: string;
   title: string;
   description: string;
@@ -232,7 +233,10 @@ const ExhibitionScene = ({
         if (currentFrame.name === "minigame") {
           if (currentFrame.minigameUrl)
             window.open(currentFrame.minigameUrl, "_blank");
-          else toast.info("Minigame chưa tạo đâu bruh!");
+          else
+            toast.info(
+              currentFrame.minigameMessage || "Minigame chưa tạo đâu bruh!"
+            );
           return;
         }
         onShowPanel(currentFrame);
@@ -340,7 +344,10 @@ const ExhibitionScene = ({
                           if (item.minigameUrl) {
                             window.open(item.minigameUrl, "_blank");
                           } else {
-                            toast.info("Minigame chưa tạo đâu bruh!");
+                            toast.info(
+                              item.minigameMessage ||
+                                "Minigame chưa tạo đâu bruh!"
+                            );
                           }
                         }
                       }}
