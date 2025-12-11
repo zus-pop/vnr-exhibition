@@ -29,6 +29,7 @@ import { CustomEcctrlRigidBody } from "ecctrl";
 import { button, buttonGroup, folder, useControls } from "leva";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
 
@@ -228,8 +229,10 @@ const ExhibitionScene = ({
         event.key.toLowerCase() === "e" &&
         currentFrame
       ) {
-        if (currentFrame.name === "minigame" && currentFrame.minigameUrl) {
-          window.open(currentFrame.minigameUrl, "_blank");
+        if (currentFrame.name === "minigame") {
+          if (currentFrame.minigameUrl)
+            window.open(currentFrame.minigameUrl, "_blank");
+          else toast.info("Minigame chưa tạo đâu bruh!");
           return;
         }
         onShowPanel(currentFrame);
@@ -336,6 +339,8 @@ const ExhibitionScene = ({
                         } else {
                           if (item.minigameUrl) {
                             window.open(item.minigameUrl, "_blank");
+                          } else {
+                            toast.info("Minigame chưa tạo đâu bruh!");
                           }
                         }
                       }}

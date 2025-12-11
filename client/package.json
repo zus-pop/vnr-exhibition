@@ -24,6 +24,7 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "socket.io-client": "^4.8.1",
+    "sonner": "^2.0.7",
     "three": "^0.181.2",
     "valtio": "^2.2.0",
     "zustand": "^5.0.9"
