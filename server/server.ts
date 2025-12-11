@@ -23,7 +23,7 @@ interface Person {
     skinColor: string;
   };
   position: [number, number, number];
-  rotation: [number, number, number, number];
+  rotation: [number, number, number, string];
 }
 
 const persons: Person[] = [];
@@ -50,8 +50,12 @@ io.on("connection", (socket) => {
       skinColor:
         "#" + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, "0"),
     },
-    position: [0, 0, 0] as [number, number, number],
-    rotation: [0, 0, 0, 1] as [number, number, number, number],
+    position: [Math.random() * 4, -0.8, Math.random() * 4] as [
+      number,
+      number,
+      number
+    ],
+    rotation: [0, 0, 0, "XYZ"] as [number, number, number, string],
   };
   persons.push(user);
 

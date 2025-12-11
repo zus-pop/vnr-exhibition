@@ -1,3 +1,4 @@
+import { useSocket } from "@/provider/SocketProvider";
 import { KeyboardControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import Ecctrl, {
@@ -5,24 +6,31 @@ import Ecctrl, {
   EcctrlAnimation,
   useGame,
 } from "ecctrl";
-import { useRef } from "react";
-import { useSocket } from "@/provider/SocketProvider";
+import { useEffect, useRef } from "react";
 import ChibiGuy from "./ChibiGuy";
-import { CapsuleCollider } from "@react-three/rapier";
 
 interface LocalModelProps {
   hairColor?: string;
   skinColor?: string;
   mode?: "first person" | "third person";
+  position: [number, number, number];
+  rotation: [number, number, number, string];
 }
 
-const LocalModel = ({ hairColor, skinColor, mode }: LocalModelProps) => {
+const LocalModel = ({
+  hairColor,
+  skinColor,
+  mode,
+  position,
+  rotation,
+}: LocalModelProps) => {
   const { socket } = useSocket();
   const modelRef = useRef<CustomEcctrlRigidBody>(null);
   const previousPosition = useRef({ x: 0, y: 0, z: 0 });
   const previousRotation = useRef({ x: 0, y: 0, z: 0, w: 1 });
   const currentAnimation = useGame((state) => state.curAnimation);
   const pressedRef = useRef<boolean>(false);
+
   useFrame(() => {
     if (!modelRef.current) return;
 
@@ -116,8 +124,8 @@ const LocalModel = ({ hairColor, skinColor, mode }: LocalModelProps) => {
       <Ecctrl
         key={mode}
         animated
-        position-y={-0.8}
         camCollision={false}
+        maxVelLimit={3}
         camInitDis={mode === "first person" ? -0.01 : 3}
         camMinDis={mode === "first person" ? -0.01 : 3}
         camMaxDis={mode === "first person" ? -0.01 : 3}

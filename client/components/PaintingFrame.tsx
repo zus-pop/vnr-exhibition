@@ -102,7 +102,7 @@ export default function PaintingFrame({
   useFrame((_, delta) => {
     if (octahedronGeometryRef.current) {
       octahedronGeometryRef.current.rotation.y += delta;
-      octahedronGeometryRef.current.rotation.x += delta * 0.3;
+      //   octahedronGeometryRef.current.rotation.x += delta * 0.3;
     }
   });
 
@@ -326,8 +326,9 @@ export default function PaintingFrame({
             scale={0.319}
             onClick={(e) => {
               if (props.mode === "first person") return;
+              e.stopPropagation();
               if (props.onMoveCamera && groupRef.current) {
-                props.onMoveCamera(groupRef.current);
+                props.onMoveCamera(groupRef.current, { zoom: 1.2 });
               }
               if (onClick) {
                 (onClick as (event: ThreeEvent<MouseEvent>) => void)(e);
@@ -349,31 +350,52 @@ export default function PaintingFrame({
                 <mesh
                   ref={octahedronGeometryRef}
                   position={[0.7, 0.44, 0.05]}
-                  onClick={() => {
+                  onPointerOver={onPointerOver}
+                  onPointerOut={onPointerOut}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (props.mode !== "camera") return;
                     props.onShowPanel(props.item);
                   }}
                 >
-                  <octahedronGeometry args={[0.08, 0]} />
+                  <octahedronGeometry args={[0.1, 0]} />
                   <meshNormalMaterial />
                 </mesh>
                 {!props.isOpen && (
-                  <Html
-                    position={[1, 0.44, 0.05]}
-                    center
-                    style={{
-                      color: "white",
-                      fontSize: "14px",
-                      textAlign: "center",
-                      background: "rgba(0, 0, 0, 0.7)",
-                      padding: "5px",
-                      width: "120px",
-                      borderRadius: "5px",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    Nhấn E để xem chi tiết
-                  </Html>
+                  <>
+                    <Html
+                      position={[1, 0.44, 0.05]}
+                      center
+                      style={{
+                        color: "white",
+                        fontSize: "14px",
+                        textAlign: "center",
+                        background: "rgba(0, 0, 0, 0.7)",
+                        padding: "5px",
+                        width: "120px",
+                        borderRadius: "5px",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      Nhấn E để xem chi tiết
+                    </Html>
+                    <Html
+                      position={[-0.9, 0.55, 0.05]}
+                      center
+                      style={{
+                        color: "white",
+                        fontSize: "14px",
+                        textAlign: "center",
+                        background: "rgba(0, 0, 0, 0.7)",
+                        padding: "5px",
+                        width: "120px",
+                        borderRadius: "5px",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {props.item.title}
+                    </Html>
+                  </>
                 )}
               </>
             )

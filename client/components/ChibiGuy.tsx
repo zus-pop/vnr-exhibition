@@ -70,9 +70,9 @@ export default function ChibiGuy({
   return (
     <group
       ref={group}
-      scale={0.5}
-      position={[0, -0.9, 0]}
+      scale={0.6}
       {...props}
+      position={[0, -0.8, 0]}
       dispose={null}
     >
       <group name="Sketchfab_Scene">

@@ -1,11 +1,16 @@
 "use client";
+import DienBienPhuModel from "@/components/DienBienPhuModel";
 import ExhibitionModel from "@/components/ExhibitionModel";
 import LocalModel from "@/components/LocalModel";
 import PaintingFrame from "@/components/PaintingFrame";
 import RemoteModel from "@/components/RemoteModel";
-import { useCameraMovement } from "@/hooks/useCameraMovement";
+import {
+  CameraMovementOptions,
+  useCameraMovement,
+} from "@/hooks/useCameraMovement";
 import { useSocket } from "@/provider/SocketProvider";
 import { userPersonStore } from "@/stores/person";
+import { useSpring } from "@react-spring/three";
 import {
   CameraControls,
   Environment,
@@ -17,13 +22,12 @@ import {
 } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Physics, RigidBody } from "@react-three/rapier";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { button, useControls } from "leva";
+import { button, buttonGroup, folder, useControls } from "leva";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
-import { useSpring } from "@react-spring/three";
 
 export type Data = {
   id: string;
@@ -42,16 +46,20 @@ interface ExhibitionSceneProps {
   onShowPanel: (item: Data) => void;
   showIcon: boolean;
   mode: string;
-  edit: boolean;
+  edit: boolean | undefined;
   selectedItem: Data | null;
   data: Data[];
 }
 const state = proxy<{
   current: string | null;
   mode: number;
+  hovered: boolean;
+  viewMode: "camera" | "first person" | "third person";
 }>({
   current: null,
   mode: 0,
+  hovered: false,
+  viewMode: "camera",
 });
 const modes: ["translate", "rotate", "scale"] = [
   "translate",
@@ -106,13 +114,32 @@ const ExhibitionScene = ({
   const scene = useThree((state) => state.scene);
   const camera = useThree((state) => state.camera);
 
-  const [hovered, setHovered] = useState<boolean>(false);
-  useCursor(hovered);
+  useCursor(snap.hovered);
   const moveCameraToObject = useCameraMovement(cameraControlsRef);
   const persons = userPersonStore((state) => state.persons);
   const { socket } = useSocket();
   useControls({
-    Save: button(
+    "Danh sách": folder(
+      (() => {
+        const obj: Record<string, any> = {};
+        data
+          .sort((a, b) => Number(a.id) - Number(b.id))
+          .forEach((item, index) => {
+            obj[`${index + 1}. ${item.title}`] = button(() => {
+              const options: CameraMovementOptions = { zoom: 1.2 };
+              const isFigure = item.name === "thoi-khac-chien-thang";
+              if (isFigure) {
+                options.offsetX = -1;
+                options.offsetY = 0.2;
+              }
+              moveCameraToObject(scene.getObjectByName(item.name)!, options);
+            });
+          });
+        return obj;
+      })(),
+      { collapsed: true } // Optional: starts collapsed
+    ),
+    "Lưu thay đổi": button(
       () => {
         const items = groupRef.current?.children.map((child) => ({
           name: child.name,
@@ -122,7 +149,7 @@ const ExhibitionScene = ({
         }));
         mutate(items || []);
       },
-      { disabled: isPending }
+      { disabled: true }
     ),
   });
   const [currentFrame, setCurrentFrame] = useState<Data | null>(null);
@@ -130,19 +157,19 @@ const ExhibitionScene = ({
   useSpring({
     dummy: 1,
     from: 0,
-    delay: 300,
+    delay: 800,
     onRest: () => {
       moveCameraToObject(scene.getObjectByName("exhibition")!, {
-        offsetX: -4,
-        zoom: 0.8,
+        offsetX: -6,
+        zoom: 0.4,
       });
     },
   });
   useEffect(() => {
     if (mode === "camera" && cameraControlsRef.current) {
       moveCameraToObject(scene.getObjectByName("exhibition")!, {
-        offsetX: -4,
-        zoom: 0.8,
+        offsetX: -6,
+        zoom: 0.4,
       });
     }
   }, [mode, cameraControlsRef, scene, moveCameraToObject]);
@@ -153,7 +180,7 @@ const ExhibitionScene = ({
 
     let closestFrame: Data | null = null;
     let minDistance = Infinity;
-    const offset = mode === "first person" ? 3 : 5;
+    const offset = mode === "first person" ? 5 : 5;
 
     data.forEach((item) => {
       const distance = camera.position.distanceTo(
@@ -210,6 +237,8 @@ const ExhibitionScene = ({
                 hairColor={p.colors.hairColor}
                 skinColor={p.colors.skinColor}
                 mode={mode}
+                position={p.position}
+                rotation={p.rotation}
               />
             ) : (
               <RemoteModel
@@ -221,10 +250,52 @@ const ExhibitionScene = ({
             )
           )}
         <RigidBody type="fixed" colliders="trimesh">
-          <ExhibitionModel name="exhibition" />
+          <ExhibitionModel scale={1.8} name="exhibition" />
         </RigidBody>
+
         <group ref={groupRef}>
           {data.map((item) => {
+            if (item.name === "thoi-khac-chien-thang")
+              return (
+                <RigidBody key={item.name} type="fixed" colliders="cuboid">
+                  <mesh>
+                    <DienBienPhuModel
+                      position={[0, 1, 0]}
+                      scale={2}
+                      name={item.name}
+                      onShowPanel={onShowPanel}
+                      showIcon={showIcon}
+                      mode={mode}
+                      isClose={currentFrame === item}
+                      isOpen={!!selectedItem}
+                      onPointerOver={(e) => {
+                        if (mode !== "camera") return;
+                        e.stopPropagation();
+                        state.hovered = true;
+                      }}
+                      onPointerOut={() => {
+                        if (mode !== "camera") return;
+                        state.hovered = false;
+                      }}
+                      onClick={(e) => {
+                        if (mode !== "camera") return;
+                        e.stopPropagation();
+                        if (edit) {
+                          state.current = item.name;
+                        }
+                      }}
+                      onMoveCamera={
+                        mode === "camera" && !edit
+                          ? moveCameraToObject
+                          : undefined
+                      }
+                      item={item}
+                    />
+                    <boxGeometry args={[2, 2, 2]} />
+                    <meshStandardMaterial color="black" />
+                  </mesh>
+                </RigidBody>
+              );
             return (
               <PaintingFrame
                 key={item.name}
@@ -250,11 +321,11 @@ const ExhibitionScene = ({
                 onPointerOver={(e) => {
                   if (mode !== "camera") return;
                   e.stopPropagation();
-                  setHovered(true);
+                  state.hovered = true;
                 }}
                 onPointerOut={() => {
                   if (mode !== "camera") return;
-                  setHovered(false);
+                  state.hovered = false;
                 }}
                 onClick={(e) => {
                   if (mode !== "camera") return;
@@ -318,6 +389,7 @@ const ExhibitionScene = ({
 
 const ExhibitionPage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const snap = useSnapshot(state);
   const { data = [] } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
@@ -327,19 +399,16 @@ const ExhibitionPage = () => {
       return response.data;
     },
   });
-  const { mode, edit } = useControls({
-    mode: {
-      value: "camera",
-      options: {
-        Camera: "camera",
-        "Góc nhìn thứ nhất": "first person",
-        "Góc nhìn thứ ba": "third person",
-      },
-      label: "Chế độ xem",
-    },
+  const { edit } = useControls({
+    "Chế độ xem": buttonGroup({
+      Camera: () => (state.viewMode = "camera"),
+      "Góc nhìn thứ nhất": () => (state.viewMode = "first person"),
+      "Góc nhìn thứ ba": () => (state.viewMode = "third person"),
+    }),
     edit: {
       value: false,
       label: "Chế độ chỉnh sửa",
+      disabled: true,
     },
   });
   const { progress } = useProgress();
@@ -373,15 +442,15 @@ const ExhibitionPage = () => {
     }
   };
   useEffect(() => {
-    if (mode !== "camera") {
-      canvasRef.current?.requestPointerLock();
-    } else {
-      document.exitPointerLock();
+    if (snap.viewMode !== "camera") {
+      setTimeout(() => {
+        canvasRef.current?.requestPointerLock();
+      }, 200);
     }
-  }, [mode]);
+  }, [snap.viewMode]);
   return (
     <>
-      {mode === "camera" && (
+      {snap.viewMode === "camera" && (
         <div
           style={{
             position: "fixed",
@@ -502,10 +571,10 @@ const ExhibitionPage = () => {
       )}
       <Canvas
         ref={canvasRef}
-        camera={{ position: [0, 8, 1200] }}
+        camera={{ position: [0, 8, 3600] }}
         shadows
         onDoubleClick={() => {
-          if (mode === "camera") return;
+          if (snap.viewMode === "camera") return;
           if (document.pointerLockElement) {
             document.exitPointerLock();
           } else {
@@ -535,7 +604,7 @@ const ExhibitionPage = () => {
         >
           <ExhibitionScene
             data={data}
-            mode={mode}
+            mode={snap.viewMode}
             edit={edit}
             cameraControlsRef={cameraControlsRef}
             canvasRef={canvasRef}
@@ -552,7 +621,8 @@ const ExhibitionPage = () => {
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300"
             onClick={() => (
-              mode !== "camera" && canvasRef.current?.requestPointerLock(),
+              snap.viewMode !== "camera" &&
+                canvasRef.current?.requestPointerLock(),
               setSelectedItem(null)
             )}
           >
@@ -562,7 +632,8 @@ const ExhibitionPage = () => {
             >
               <button
                 onClick={() => (
-                  mode !== "camera" && canvasRef.current?.requestPointerLock(),
+                  snap.viewMode !== "camera" &&
+                    canvasRef.current?.requestPointerLock(),
                   setSelectedItem(null)
                 )}
                 className="absolute top-2 right-2 px-3 py-2 bg-black text-white border-none rounded cursor-pointer text-xl"
