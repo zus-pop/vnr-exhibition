@@ -8,6 +8,7 @@ import Ecctrl, {
 } from "ecctrl";
 import { useEffect, useRef } from "react";
 import ChibiGuy from "./ChibiGuy";
+import { useControls } from "leva";
 
 interface LocalModelProps {
   hairColor?: string;
@@ -15,36 +16,39 @@ interface LocalModelProps {
   mode?: "first person" | "third person";
   position: [number, number, number];
   rotation: [number, number, number, string];
+  localModelRef: React.RefObject<CustomEcctrlRigidBody | null>;
 }
 
 const LocalModel = ({
   hairColor,
   skinColor,
   mode,
-  position,
-  rotation,
+  localModelRef,
 }: LocalModelProps) => {
   const { socket } = useSocket();
-  const modelRef = useRef<CustomEcctrlRigidBody>(null);
   const previousPosition = useRef({ x: 0, y: 0, z: 0 });
   const previousRotation = useRef({ x: 0, y: 0, z: 0, w: 1 });
   const currentAnimation = useGame((state) => state.curAnimation);
   const pressedRef = useRef<boolean>(false);
 
   useFrame(() => {
-    if (!modelRef.current) return;
+    if (!localModelRef.current) return;
 
-    if (!modelRef.current.group) return;
+    if (!localModelRef.current.group) return;
 
-    if (modelRef.current.group.translation().y < -1) {
-      modelRef.current.group.setTranslation({ x: 0, y: 3, z: 0 }, true);
-      modelRef.current.group.setLinvel({ x: 0, y: 0, z: 0 }, true);
-      modelRef.current.group.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    if (localModelRef.current.group.translation().y < -1) {
+      const currentPos = localModelRef.current.group.translation();
+      localModelRef.current.group.setTranslation(
+        { x: currentPos.x, y: 4, z: currentPos.z },
+        true
+      );
+      localModelRef.current.group.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      localModelRef.current.group.setAngvel({ x: 0, y: 0, z: 0 }, true);
     }
 
     // Check if object is moving
-    const currentPos = modelRef.current.group.translation();
-    const currentRot = modelRef.current.group.rotation();
+    const currentPos = localModelRef.current.group.translation();
+    const currentRot = localModelRef.current.group.rotation();
 
     // Use different thresholds for different axes - Y-axis needs higher threshold
     const positionThreshold = {
@@ -114,6 +118,11 @@ const LocalModel = ({
     action4: "Clapping",
   };
 
+  const { capsuleHalfHeight, capsuleRadius, floatHeight } = useControls({
+    capsuleHalfHeight: { value: 0.1, min: 0.1, max: 2, step: 0.01 },
+    capsuleRadius: { value: 0.4, min: 0.1, max: 2, step: 0.01 },
+    floatHeight: { value: 0, min: 0, max: 2, step: 0.01 },
+  });
   return (
     <KeyboardControls
       onChange={(_, pressed) => {
@@ -125,18 +134,22 @@ const LocalModel = ({
         key={mode}
         animated
         camCollision={false}
-        maxVelLimit={3}
+        maxVelLimit={4}
         camInitDis={mode === "first person" ? -0.01 : 3}
         camMinDis={mode === "first person" ? -0.01 : 3}
         camMaxDis={mode === "first person" ? -0.01 : 3}
+        camTargetPos={{ x: 0, y: 1, z: 0 }}
         camFollowMult={1000}
         camLerpMult={1000}
         turnVelMultiplier={1}
         turnSpeed={100}
         mode={mode === "first person" ? "CameraBasedMovement" : undefined}
-        ref={modelRef}
+        ref={localModelRef}
+        position={[0, 4, 0]}
+        capsuleHalfHeight={capsuleHalfHeight}
+        capsuleRadius={capsuleRadius}
+        floatHeight={floatHeight}
       >
-        {/* <CapsuleCollider args={[0.1, 0.15]} /> */}
         <EcctrlAnimation
           characterURL={characterURL}
           animationSet={animationSet}

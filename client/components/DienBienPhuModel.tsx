@@ -6,7 +6,7 @@ Files: .\client\public\dienbienphu.glb [104.51MB] > D:\Works\Coding-Stuffs\3D\vn
 
 import { Html, useGLTF } from "@react-three/drei";
 import { ThreeEvent, useFrame } from "@react-three/fiber";
-import { JSX, useRef } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
 import { CameraMovementOptions } from "../hooks/useCameraMovement";
@@ -36,7 +36,6 @@ interface DienBienPhuModelProps {
 
 export default function DienBienPhuModel({
   onClick,
-  onContextMenu,
   onPointerOver,
   onPointerOut,
   ...props
@@ -58,22 +57,7 @@ export default function DienBienPhuModel({
         geometry={nodes.material.geometry}
         material={materials["Material.001"]}
         rotation={[Math.PI / 2, 0, 0]}
-        onClick={(e) => {
-          if (props.mode === "first person") return;
-          e.stopPropagation();
-          if (props.onMoveCamera && groupRef.current) {
-            props.onMoveCamera(groupRef.current, {
-              offsetX: -2,
-              offsetZ: 0.2,
-              offsetY: 1.2,
-            });
-          }
-          if (onClick) {
-            (onClick as (event: ThreeEvent<MouseEvent>) => void)(e);
-          }
-        }}
-        onPointerOver={onPointerOver}
-        onPointerOut={onPointerOut}
+        raycast={() => null}
       />
       {props.mode !== "camera" ? (
         props.isClose && (
@@ -90,6 +74,7 @@ export default function DienBienPhuModel({
               <octahedronGeometry args={[0.1, 0]} />
               <meshNormalMaterial />
             </mesh>
+
             {!props.isOpen && (
               <>
                 <Html
@@ -129,17 +114,45 @@ export default function DienBienPhuModel({
           </>
         )
       ) : (
-        <mesh
-          ref={octahedronGeometryRef}
-          position={[0.5, 0.22, 0.05]}
-          onClick={() => {
-            if (props.mode !== "camera") return;
-            props.onShowPanel(props.item);
-          }}
-        >
-          <octahedronGeometry args={[0.06, 0]} />
-          <meshNormalMaterial />
-        </mesh>
+        <>
+          <mesh
+            ref={octahedronGeometryRef}
+            position={[0.5, 0.22, 0.05]}
+            onClick={(e) => {
+              if (props.mode !== "camera") return;
+              e.stopPropagation();
+              props.onShowPanel(props.item);
+            }}
+            onPointerOver={onPointerOver}
+            onPointerOut={onPointerOut}
+          >
+            <octahedronGeometry args={[0.06, 0]} />
+            <meshNormalMaterial />
+          </mesh>
+          <mesh
+            onClick={(e) => {
+              if (props.mode !== "camera") return;
+              e.stopPropagation();
+              if (props.onMoveCamera && groupRef.current) {
+                props.onMoveCamera(groupRef.current, {
+                  offsetX: -1,
+                  offsetY: 0.2,
+                  zoom: 1.2,
+                });
+              }
+              if (onClick) {
+                (onClick as (event: ThreeEvent<MouseEvent>) => void)(e);
+              }
+            }}
+            onPointerOver={onPointerOver}
+            onPointerOut={onPointerOut}
+            position={[0, 0.05, 0]}
+            visible={false}
+          >
+            <boxGeometry args={[0.75, 0.1, 0.75]} />
+            <meshStandardMaterial color="red" />
+          </mesh>
+        </>
       )}
     </group>
   );

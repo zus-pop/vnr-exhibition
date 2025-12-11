@@ -14,6 +14,7 @@ import { useSpring } from "@react-spring/three";
 import {
   CameraControls,
   Environment,
+  Float,
   Html,
   Sparkles,
   TransformControls,
@@ -24,13 +25,19 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Physics, RigidBody } from "@react-three/rapier";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { CustomEcctrlRigidBody } from "ecctrl";
 import { button, buttonGroup, folder, useControls } from "leva";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
 
 export type Data = {
   id: string;
+  config: {
+    isEditDisabled: boolean;
+  };
+  minigameUrl: string | null;
   name: string;
   title: string;
   description: string;
@@ -49,6 +56,7 @@ interface ExhibitionSceneProps {
   edit: boolean | undefined;
   selectedItem: Data | null;
   data: Data[];
+  isEditDisabled?: boolean;
 }
 const state = proxy<{
   current: string | null;
@@ -74,9 +82,10 @@ const ExhibitionScene = ({
   edit,
   selectedItem,
   data,
+  isEditDisabled,
 }: ExhibitionSceneProps) => {
   const queryClient = useQueryClient();
-  const { mutate, isPending } = useMutation({
+  const { mutate } = useMutation({
     mutationFn: async (
       updates: {
         name: string;
@@ -112,8 +121,7 @@ const ExhibitionScene = ({
   const groupRef = useRef<Group>(null);
   const snap = useSnapshot(state);
   const scene = useThree((state) => state.scene);
-  const camera = useThree((state) => state.camera);
-
+  const localModelRef = useRef<CustomEcctrlRigidBody | null>(null);
   useCursor(snap.hovered);
   const moveCameraToObject = useCameraMovement(cameraControlsRef);
   const persons = userPersonStore((state) => state.persons);
@@ -147,9 +155,10 @@ const ExhibitionScene = ({
           rotation: child.rotation.toArray(),
           scale: child.scale.toArray(),
         }));
+        console.log(items);
         mutate(items || []);
       },
-      { disabled: true }
+      { disabled: isEditDisabled }
     ),
   });
   const [currentFrame, setCurrentFrame] = useState<Data | null>(null);
@@ -159,7 +168,9 @@ const ExhibitionScene = ({
     from: 0,
     delay: 800,
     onRest: () => {
-      moveCameraToObject(scene.getObjectByName("exhibition")!, {
+      const name = scene.getObjectByName("exhibition");
+      if (!name) return;
+      moveCameraToObject(name, {
         offsetX: -6,
         zoom: 0.4,
       });
@@ -167,23 +178,34 @@ const ExhibitionScene = ({
   });
   useEffect(() => {
     if (mode === "camera" && cameraControlsRef.current) {
-      moveCameraToObject(scene.getObjectByName("exhibition")!, {
+      const name = scene.getObjectByName("exhibition");
+      if (!name) return;
+      moveCameraToObject(name, {
         offsetX: -6,
         zoom: 0.4,
       });
     }
   }, [mode, cameraControlsRef, scene, moveCameraToObject]);
 
-  // Proximity detection for first person mode
   useFrame(() => {
     if (mode === "camera") return;
 
+    if (!localModelRef.current) return;
+
+    if (!localModelRef.current.group) return;
+
+    const modelPosition = localModelRef.current.group.translation();
+
     let closestFrame: Data | null = null;
     let minDistance = Infinity;
-    const offset = mode === "first person" ? 5 : 5;
+    const offset = 6;
 
     data.forEach((item) => {
-      const distance = camera.position.distanceTo(
+      const distance = new Vector3(
+        modelPosition.x,
+        modelPosition.y,
+        modelPosition.z
+      ).distanceTo(
         new Vector3(item.position[0], item.position[1], item.position[2])
       );
       if (distance < minDistance && distance < offset) {
@@ -203,6 +225,10 @@ const ExhibitionScene = ({
         event.key.toLowerCase() === "e" &&
         currentFrame
       ) {
+        if (currentFrame.name === "minigame" && currentFrame.minigameUrl) {
+          window.open(currentFrame.minigameUrl, "_blank");
+          return;
+        }
         onShowPanel(currentFrame);
       }
     };
@@ -239,6 +265,7 @@ const ExhibitionScene = ({
                 mode={mode}
                 position={p.position}
                 rotation={p.rotation}
+                localModelRef={localModelRef}
               />
             ) : (
               <RemoteModel
@@ -255,19 +282,40 @@ const ExhibitionScene = ({
 
         <group ref={groupRef}>
           {data.map((item) => {
-            if (item.name === "thoi-khac-chien-thang")
+            if (item.name === "minigame")
               return (
-                <RigidBody key={item.name} type="fixed" colliders="cuboid">
-                  <mesh>
-                    <DienBienPhuModel
-                      position={[0, 1, 0]}
-                      scale={2}
+                <RigidBody
+                  position={
+                    item.position
+                      ? [item.position[0], item.position[1], item.position[2]]
+                      : undefined
+                  }
+                  scale={0.5}
+                  key={item.name}
+                  type="fixed"
+                  colliders={"hull"}
+                >
+                  <Float
+                    rotation={[Math.PI / 3.5, 0, 0]}
+                    rotationIntensity={4}
+                    floatIntensity={6}
+                    speed={1.5}
+                  >
+                    <mesh
                       name={item.name}
-                      onShowPanel={onShowPanel}
-                      showIcon={showIcon}
-                      mode={mode}
-                      isClose={currentFrame === item}
-                      isOpen={!!selectedItem}
+                      onPointerMissed={(e) =>
+                        e.type === "click" &&
+                        mode === "camera" &&
+                        edit &&
+                        (state.current = null)
+                      }
+                      onContextMenu={(e) =>
+                        snap.current === item.name &&
+                        mode === "camera" &&
+                        edit &&
+                        (e.stopPropagation(),
+                        (state.mode = (snap.mode + 1) % modes.length))
+                      }
                       onPointerOver={(e) => {
                         if (mode !== "camera") return;
                         e.stopPropagation();
@@ -282,16 +330,99 @@ const ExhibitionScene = ({
                         e.stopPropagation();
                         if (edit) {
                           state.current = item.name;
+                        } else {
+                          if (item.minigameUrl) {
+                            window.open(item.minigameUrl, "_blank");
+                          }
                         }
                       }}
-                      onMoveCamera={
-                        mode === "camera" && !edit
-                          ? moveCameraToObject
-                          : undefined
+                    >
+                      <torusKnotGeometry />
+                      <meshNormalMaterial />
+                      {currentFrame === item && (
+                        <>
+                          {!selectedItem && (
+                            <>
+                              <Html
+                                position={[1, 0.44, 0.05]}
+                                center
+                                style={{
+                                  color: "white",
+                                  fontSize: "14px",
+                                  textAlign: "center",
+                                  background: "rgba(0, 0, 0, 0.7)",
+                                  padding: "5px",
+                                  width: "120px",
+                                  borderRadius: "5px",
+                                  pointerEvents: "none",
+                                }}
+                              >
+                                Nhấn E để chơi
+                              </Html>
+                              <Html
+                                position={[-0.9, 0.55, 0.05]}
+                                center
+                                style={{
+                                  color: "white",
+                                  fontSize: "14px",
+                                  textAlign: "center",
+                                  background: "rgba(0, 0, 0, 0.7)",
+                                  padding: "5px",
+                                  width: "120px",
+                                  borderRadius: "5px",
+                                  pointerEvents: "none",
+                                }}
+                              >
+                                {item.title}
+                              </Html>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </mesh>
+                  </Float>
+                </RigidBody>
+              );
+            if (item.name === "thoi-khac-chien-thang")
+              return (
+                <RigidBody key={item.name} type="fixed" colliders={"hull"}>
+                  <DienBienPhuModel
+                    name={item.name}
+                    position={
+                      item.position
+                        ? [item.position[0], item.position[1], item.position[2]]
+                        : undefined
+                    }
+                    scale={4}
+                    onShowPanel={onShowPanel}
+                    showIcon={showIcon}
+                    mode={mode}
+                    isClose={currentFrame === item}
+                    isOpen={!!selectedItem}
+                    onPointerOver={(e) => {
+                      if (mode !== "camera") return;
+                      e.stopPropagation();
+                      state.hovered = true;
+                    }}
+                    onPointerOut={() => {
+                      if (mode !== "camera") return;
+                      state.hovered = false;
+                    }}
+                    onClick={() => {
+                      if (mode !== "camera") return;
+                      if (edit) {
+                        state.current = item.name;
                       }
-                      item={item}
-                    />
-                    <boxGeometry args={[2, 2, 2]} />
+                    }}
+                    onMoveCamera={
+                      mode === "camera" && !edit
+                        ? moveCameraToObject
+                        : undefined
+                    }
+                    item={item}
+                  />
+                  <mesh position={[0, 0.5, 0]}>
+                    <boxGeometry args={[3, 1, 3]} />
                     <meshStandardMaterial color="black" />
                   </mesh>
                 </RigidBody>
@@ -399,6 +530,9 @@ const ExhibitionPage = () => {
       return response.data;
     },
   });
+  const isEditDisabled = useMemo(() => {
+    return data.find((d) => d.id === "0")?.config.isEditDisabled || false;
+  }, [data]);
   const { edit } = useControls({
     "Chế độ xem": buttonGroup({
       Camera: () => (state.viewMode = "camera"),
@@ -407,8 +541,8 @@ const ExhibitionPage = () => {
     }),
     edit: {
       value: false,
-      label: "Chế độ chỉnh sửa",
-      disabled: true,
+      label: "Chỉnh sửa",
+      disabled: isEditDisabled,
     },
   });
   const { progress } = useProgress();
@@ -571,7 +705,7 @@ const ExhibitionPage = () => {
       )}
       <Canvas
         ref={canvasRef}
-        camera={{ position: [0, 8, 3600] }}
+        // camera={{ position: [0, 8, 3600] }}
         shadows
         onDoubleClick={() => {
           if (snap.viewMode === "camera") return;
@@ -603,7 +737,7 @@ const ExhibitionPage = () => {
           }
         >
           <ExhibitionScene
-            data={data}
+            data={data.filter((d) => Number(d.id) !== 0)}
             mode={snap.viewMode}
             edit={edit}
             cameraControlsRef={cameraControlsRef}
@@ -611,6 +745,7 @@ const ExhibitionPage = () => {
             onShowPanel={(item) => setSelectedItem(item)}
             showIcon={!selectedItem}
             selectedItem={selectedItem}
+            isEditDisabled={isEditDisabled}
           />
           <Sparkles size={30} scale={80} count={800} />
         </Suspense>
