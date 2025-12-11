@@ -153,12 +153,13 @@ const ExhibitionScene = ({
 
     let closestFrame: Data | null = null;
     let minDistance = Infinity;
+    const offset = mode === "first person" ? 3 : 5;
 
     data.forEach((item) => {
       const distance = camera.position.distanceTo(
         new Vector3(item.position[0], item.position[1], item.position[2])
       );
-      if (distance < minDistance && distance < 3) {
+      if (distance < minDistance && distance < offset) {
         minDistance = distance;
         closestFrame = item;
       }
@@ -266,17 +267,21 @@ const ExhibitionScene = ({
                   mode === "camera" && !edit ? moveCameraToObject : undefined
                 }
                 item={item}
-                position={[
-                  item.position[0],
-                  item.position[1],
-                  item.position[2],
-                ]}
-                rotation={[
-                  item.rotation[0],
-                  item.rotation[1],
-                  item.rotation[2],
-                ]}
-                scale={[item.scale[0], item.scale[1], item.scale[2]]}
+                position={
+                  item.position
+                    ? [item.position[0], item.position[1], item.position[2]]
+                    : undefined
+                }
+                rotation={
+                  item.rotation
+                    ? [item.rotation[0], item.rotation[1], item.rotation[2]]
+                    : undefined
+                }
+                scale={
+                  item.scale
+                    ? [item.scale[0], item.scale[1], item.scale[2]]
+                    : undefined
+                }
               />
             );
           })}
@@ -296,8 +301,8 @@ const ExhibitionScene = ({
             makeDefault
             minDistance={1}
             maxDistance={9}
-            minPolarAngle={0} // Prevent tilting below the horizon (straight down)
-            maxPolarAngle={Math.PI / 2}
+            minPolarAngle={edit ? undefined : Math.PI / 4}
+            maxPolarAngle={edit ? undefined : Math.PI / 2}
             enabled
             smoothTime={0.5}
             restThreshold={0.5}
@@ -497,7 +502,7 @@ const ExhibitionPage = () => {
       )}
       <Canvas
         ref={canvasRef}
-        camera={{ position: [0, 8, 800] }}
+        camera={{ position: [0, 8, 1200] }}
         shadows
         onDoubleClick={() => {
           if (mode === "camera") return;
