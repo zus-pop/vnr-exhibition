@@ -545,9 +545,9 @@ const ExhibitionPage = () => {
       return response.data;
     },
   });
-  const isEditDisabled = useMemo(() => {
-    return data.find((d) => d.id === "0")?.config.isEditDisabled || false;
-  }, [data]);
+  //   const isEditDisabled = useMemo(() => {
+  //     return data.find((d) => d.id === "0")?.config.isEditDisabled || false;
+  //   }, [data]);
   useControls({
     "Chế độ xem": buttonGroup({
       Camera: () => (state.viewMode = "camera"),
@@ -770,7 +770,7 @@ const ExhibitionPage = () => {
             onShowPanel={(item) => setSelectedItem(item)}
             showIcon={!selectedItem}
             selectedItem={selectedItem}
-            isEditDisabled={isEditDisabled}
+            isEditDisabled={true}
           />
           <Sparkles size={30} scale={80} count={800} />
         </Suspense>
