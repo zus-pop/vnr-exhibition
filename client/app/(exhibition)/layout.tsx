@@ -11,7 +11,7 @@ const ExhibitionLayout = ({
   return (
     <MyQuery>
       <SocketProvider>
-        <div className="w-screen h-screen">{children}</div>
+        <div className="w-screen h-screen bg-black">{children}</div>
       </SocketProvider>
     </MyQuery>
   );
