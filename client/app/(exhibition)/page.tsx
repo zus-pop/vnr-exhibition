@@ -135,7 +135,167 @@ const ExhibitionScene = ({
     "Danh sách": folder(
       (() => {
         const obj: Record<string, any> = {};
-        data
+        [
+          {
+            id: "10",
+            minigameUrl: "https://www.gimkit.com/join?gc=785643",
+            minigameMessage: "Minigame chưa tạo đâu bruh! Đợi tí đê.",
+            title: "Minigame",
+            name: "minigame",
+            position: [
+              -11.523047655235615, 4.2234810381242145, 1.1883063514967858,
+            ],
+            rotation: [0, 0, 0, "XYZ"],
+            scale: [0.5, 0.5, 0.5],
+          },
+          {
+            id: "1",
+            name: "toan-quoc-khang-chien-bung-no",
+            title: "Toàn quốc kháng chiến bùng nổ",
+            description:
+              'Thời gian: 20 giờ, ngày 19/12/1946.\n\nTrước dã tâm xâm lược trở lại của thực dân Pháp (gửi tối hậu thư đòi kiểm soát Hà Nội), thiện chí hòa bình của ta đã bị cự tuyệt. Hội nghị Ban Thường vụ Trung ương Đảng (18-19/12/1946) tại Vạn Phúc (Hà Đông) đã quyết định phát động toàn quốc kháng chiến. Chủ tịch Hồ Chí Minh ra "Lời kêu gọi toàn quốc kháng chiến" với tinh thần: "Chúng ta thà hy sinh tất cả, chứ nhất định không chịu mất nước, nhất định không chịu làm nô lệ". Tại Hà Nội, đèn điện vụt tắt, pháo đài Láng nổ súng báo hiệu. Quân và dân Hà Nội đã chiến đấu giam chân địch trong thành phố suốt 60 ngày đêm để bảo vệ Trung ương rút lên chiến khu an toàn.',
+            imageUrl: "https://i.postimg.cc/T3xp3h8Q/toanquockhangchien-1.jpg",
+            position: [
+              -11.340806461048537, 1.127283518325818, -8.670102145684393,
+            ],
+            rotation: [0, 0.9562549838992235, 0, "XYZ"],
+            scale: [1.4184508999146874, 1.316906710866308, 0.5106111154931134],
+          },
+          {
+            id: "2",
+            name: "chien-thang-viet-bac-thu-dong-1947",
+            title: "Chiến thắng Việt Bắc Thu - Đông 1947",
+            description:
+              'Thời gian: 7/10/1947 – 21/12/1947.\n\nThực dân Pháp huy động 12.000 quân tấn công lên Việt Bắc nhằm bắt gọn cơ quan đầu não kháng chiến ("chụp bắt Chính phủ Hồ Chí Minh") và tiêu diệt bộ đội chủ lực ta. Thực hiện chỉ thị "Phải phá tan cuộc tấn công mùa đông của giặc Pháp", quân dân ta đã bẻ gãy các gọng kìm của địch trên sông Lô, đường số 4 và đường số 3. Kết quả: Bảo toàn được cơ quan đầu não, đánh bại chiến lược "đánh nhanh, thắng nhanh" của Pháp, buộc chúng phải chuyển sang đánh lâu dài.',
+            imageUrl: "https://i.postimg.cc/ncBXxBWW/vietbacthudong-1.jpg",
+            position: [
+              8.863239627256647, 1.736020118655151, -11.406319655835095,
+            ],
+            rotation: [
+              0.031916141182173334,
+              -0.6170924171305512,
+              0.024726376310058237,
+              "XYZ",
+            ],
+            scale: [1.7166587161100797, 1.484394638592089, 0.5446473171594313],
+          },
+          {
+            id: "3",
+            name: "chien-dich-bien-gioi-thu-dong-1950",
+            title: "Chiến dịch Biên giới Thu - Đông 1950",
+            description:
+              "Thời gian: 16/9/1950 – 17/10/1950.\n\nĐây là chiến dịch tiến công lớn đầu tiên do ta chủ động mở nhằm phá thế bao vây, khai thông biên giới Việt - Trung để mở rộng quan hệ với quốc tế. Chủ tịch Hồ Chí Minh đã trực tiếp ra mặt trận chỉ đạo chiến dịch. Kết quả: Ta giải phóng tuyến biên giới dài 750km, tiêu diệt và bắt sống hơn 8.000 tên địch. Chiến thắng này giúp ta giành quyền chủ động chiến lược trên chiến trường chính Bắc Bộ.",
+            imageUrl: "https://i.postimg.cc/pXzmvzS1/biengioithudong-1.jpg",
+            position: [
+              11.473167203528034, 1.484166404795893, 8.555382540381835,
+            ],
+            rotation: [
+              -3.1395387760194238,
+              -0.916359290428125,
+              -3.1415648440792614,
+              "XYZ",
+            ],
+            scale: [1.835069808038407, 1.4660161612507299, 1],
+          },
+          {
+            id: "4",
+            name: "dai-hoi-dai-bieu-lan-thu-ii-cua-dang",
+            title: "Đại hội đại biểu lần thứ II của Đảng",
+            description:
+              'Thời gian: Tháng 2/1951.\n\nĐảng ra hoạt động công khai lấy tên là Đảng Lao động Việt Nam. Đại hội thông qua "Chính cương của Đảng Lao động Việt Nam", xác định nhiệm vụ đánh đuổi đế quốc xâm lược, giành độc lập và thống nhất hoàn toàn. Đây là "Đại hội kháng chiến kiến quốc", đánh dấu bước trưởng thành mới về tư tưởng và tổ chức của Đảng.',
+            imageUrl: "https://i.postimg.cc/ZKpWmpQx/daibieutoanquoc-II-1.jpg",
+            position: [
+              -9.425220976732847, 1.5192236280666425, 11.041007650297033,
+            ],
+            rotation: [
+              -3.122612208650741,
+              0.7455767357848921,
+              3.1272029377902766,
+              "XYZ",
+            ],
+            scale: [1.332027670246892, 1.1008862074281882, 0.6271434738637405],
+          },
+          {
+            id: "5",
+            name: "cuoc-tien-cong-chien-luoc-dong-xuan-1953-1954",
+            title: "Cuộc tiến công chiến lược Đông Xuân 1953 - 1954",
+            description:
+              "Thời gian: Từ tháng 12/1953.\n\nĐể đối phó với Kế hoạch Nava (tập trung binh lực của Pháp), Bộ Chính trị quyết định mở các cuộc tấn công vào những hướng địch sơ hở nhưng hiểm yếu. Quân ta đồng loạt tiến công lên Tây Bắc, Trung Lào, Hạ Lào, Bắc Tây Nguyên. Kết quả: Buộc khối cơ động chiến lược của Pháp đang tập trung phải phân tán ra 5 nơi, làm phá sản bước đầu Kế hoạch Nava, tạo thời cơ cho trận quyết chiến tại Điện Biên Phủ.",
+            imageUrl: "https://i.postimg.cc/MKVnwVLy/dongxuan-1.webp",
+            position: [
+              -7.9977810807579655, 1.1529322262406847, 0.820246664840219,
+            ],
+            rotation: [
+              3.128845493982037,
+              1.4860527838903095,
+              -3.1320936499784544,
+              "XYZ",
+            ],
+            scale: [1.925235005322514, 1.7066208110824188, 0.6354858524413872],
+          },
+          {
+            id: "6",
+            name: "quyet-dinh-mo-chien-dich-dien-bien-phu",
+            title: "Quyết định mở Chiến dịch Điện Biên Phủ",
+            description:
+              "Thời gian: 6/12/1953.\n\nĐể đối phó với Kế hoạch Nava (tập trung binh lực của Pháp), Bộ Chính trị quyết định mở các cuộc tấn công vào những hướng địch sơ hở nhưng hiểm yếu. Quân ta đồng loạt tiến công lên Tây Bắc, Trung Lào, Hạ Lào, Bắc Tây Nguyên. Kết quả: Buộc khối cơ động chiến lược của Pháp đang tập trung phải phân tán ra 5 nơi, làm phá sản bước đầu Kế hoạch Nava, tạo thời cơ cho trận quyết chiến tại Điện Biên Phủ.",
+            imageUrl:
+              "https://i.postimg.cc/qMyNryFN/mochiendichdienbienphu-1.jpg",
+            position: [
+              -0.8573341589576189, 1.4865143710245672, -8.163355576377445,
+            ],
+            rotation: [
+              0.0007486589689940111,
+              0.10750994575714985,
+              0.000024292020456988863,
+              "XYZ",
+            ],
+            scale: [1.5802155820599897, 1.355276868979347, 0.5429581348551288],
+          },
+          {
+            id: "7",
+            name: "dien-bien-56-ngay-dem-khoet-nui-ngu-ham",
+            title: "Diễn biến 56 ngày đêm khoét núi, ngủ hầm",
+            description:
+              "Thời gian: 13/3/1954 – 7/5/1954.\n\nMở màn (13/3/1954): Quân ta nổ súng tiêu diệt phân khu Him Lam. Diễn biến: Trải qua 3 đợt tiến công, quân dân ta đã thắt chặt vòng vây, cắt đứt đường tiếp tế hàng không, tấn công các cao điểm phía Đông. Toàn dân dốc sức chi viện cho tiền tuyến: Hàng vạn dân công, thanh niên xung phong vận chuyển lương thực, đạn dược ra mặt trận.",
+            imageUrl: "https://i.postimg.cc/VLnJwnhB/56ngaydem-1.webp",
+            position: [
+              8.128513449395014, 1.7751784042712004, -0.8035631139358904,
+            ],
+            rotation: [0, -1.4649495294111299, 0, "XYZ"],
+            scale: [1.790170428142103, 1.47542343703715, 1],
+          },
+          {
+            id: "8",
+            name: "thoi-khac-chien-thang",
+            title: "Thời khắc chiến thắng",
+            description:
+              'Thời gian: 17 giờ 30 phút, ngày 7/5/1954.\n\nQuân đội nhân dân Việt Nam đánh chiếm hầm chỉ huy, bắt sống tướng Đờ Cát-Tơ-Ri (De Castries). Lá cờ "Quyết chiến Quyết thắng" tung bay trên nóc hầm Đờ Cát. Toàn bộ tập đoàn cứ điểm bị tiêu diệt. Ý nghĩa: Đây là chiến thắng vĩ đại, "thiên sử vàng", báo hiệu sự sụp đổ của chủ nghĩa thực dân cũ trên toàn thế giới.',
+            imageUrl:
+              "https://i.postimg.cc/tRLs82BH/khoangkhacchienthang-1.jpg",
+            position: [0, 1, 0],
+            rotation: [0, 0, 0, "XYZ"],
+            scale: [1, 1, 1],
+          },
+          {
+            id: "9",
+            name: "hiep-dinh-gionevo",
+            title: "Hiệp định Giơnevơ",
+            description:
+              "Thời gian: 21/7/1954.\n\nThắng lợi tại Điện Biên Phủ đã buộc Pháp phải ngồi vào bàn đàm phán. Hiệp định Giơnevơ được ký kết, các nước cam kết tôn trọng độc lập, chủ quyền, thống nhất và toàn vẹn lãnh thổ của Việt Nam, Lào và Campuchia. Miền Bắc được hoàn toàn giải phóng, bắt đầu xây dựng chủ nghĩa xã hội.",
+            imageUrl: "https://i.postimg.cc/66D8FYYF/gionevo-1.jpg",
+            position: [
+              0.6329143463773379, 1.4369088831789218, 8.029253992033004,
+            ],
+            rotation: [
+              3.141486629966278,
+              -0.1375334027732835,
+              -3.141577593570393,
+              "XYZ",
+            ],
+            scale: [1.6217882078377392, 1.5297531031566278, 1],
+          },
+        ]
           .sort((a, b) => Number(a.id) - Number(b.id))
           .forEach((item, index) => {
             obj[`${index + 1}. ${item.title}`] = button(() => {
