@@ -1,9 +1,10 @@
 import { useFrame } from "@react-three/fiber";
 import { RapierRigidBody, RigidBody } from "@react-three/rapier";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useSocket } from "@/provider/SocketProvider";
 import ChibiGuy from "./ChibiGuy";
+import { Billboard, Html, RoundedBox, Text, Text3D } from "@react-three/drei";
 
 interface RemoteModelProps {
   modelId: string;
@@ -21,11 +22,12 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
   const targetPosition = useRef<THREE.Vector3>(
     new THREE.Vector3((Math.random() - 0.5) * 20, 0, (Math.random() - 0.5) * 20)
   );
-
   const targetRotation = useRef<THREE.Euler>(new THREE.Euler(0, 0, 0));
 
   const lerpFactor = 0.1;
   const maxDistance = 20;
+
+  const [chatMessage, setChatMessage] = useState<string | null>(null);
 
   useFrame(() => {
     if (!modelRef.current) return;
@@ -92,6 +94,7 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
   });
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
     socket.on(`remoteReceiveUpdate:${modelId}`, (data) => {
       //   console.log("RemoteModel received data:", data);
 
@@ -126,8 +129,19 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
         // }
       }
     });
+
+    socket.on(`remoteReceiveChatMessage:${modelId}`, (data) => {
+      console.log("RemoteModel received chat message:", data);
+      setChatMessage(data.message);
+      timeoutId = setTimeout(() => {
+        console.log("Clearing chat message");
+        setChatMessage(null);
+      }, 12000);
+    });
     return () => {
+      if (timeoutId) clearTimeout(timeoutId);
       socket.off(`remoteReceiveUpdate:${modelId}`);
+      socket.off(`remoteReceiveChatMessage:${modelId}`);
     };
   }, []);
   return (
@@ -137,6 +151,33 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
       type="kinematicPosition"
       colliders="hull"
     >
+      {
+        <Billboard follow={true} lockX={false} lockY={false} lockZ={false}>
+          {chatMessage && (
+            <RoundedBox
+              position={[0, 1, 0]}
+              args={[
+                Math.max(1, chatMessage.length * 0.2),
+                Math.max(0.5, chatMessage.length * 0.02),
+                0.001,
+              ]}
+              radius={0.1}
+              smoothness={4}
+            >
+              <meshBasicMaterial color="white" />
+            </RoundedBox>
+          )}
+          <Text
+            position={[0, 1, 0.01]}
+            fontSize={0.3}
+            color="black"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {chatMessage}
+          </Text>
+        </Billboard>
+      }
       <ChibiGuy
         hairColor={hairColor}
         skinColor={skinColor}

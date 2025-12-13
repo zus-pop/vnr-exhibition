@@ -78,13 +78,13 @@ export default function DienBienPhuModel({
             {!props.isOpen && (
               <>
                 <Html
-                  position={[1, 0.44, 0.05]}
+                  position={[0.33, 0.33, 0.05]}
                   center
                   style={{
-                    color: "white",
+                    color: "black",
                     fontSize: "14px",
                     textAlign: "center",
-                    background: "rgba(0, 0, 0, 0.7)",
+                    background: "white",
                     padding: "5px",
                     width: "120px",
                     borderRadius: "5px",
@@ -94,13 +94,13 @@ export default function DienBienPhuModel({
                   Nhấn E để xem chi tiết
                 </Html>
                 <Html
-                  position={[-0.9, 0.55, 0.05]}
+                  position={[-0.4, 0.33, 0.05]}
                   center
                   style={{
-                    color: "white",
+                    color: "black",
                     fontSize: "14px",
                     textAlign: "center",
-                    background: "rgba(0, 0, 0, 0.7)",
+                    background: "white",
                     padding: "5px",
                     width: "120px",
                     borderRadius: "5px",

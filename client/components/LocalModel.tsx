@@ -1,18 +1,26 @@
 import { useSocket } from "@/provider/SocketProvider";
-import { KeyboardControls } from "@react-three/drei";
+import {
+  Billboard,
+  KeyboardControls,
+  KeyboardControlsEntry,
+  RoundedBox,
+  Text,
+} from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import Ecctrl, {
   CustomEcctrlRigidBody,
   EcctrlAnimation,
   useGame,
 } from "ecctrl";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ChibiGuy from "./ChibiGuy";
+import { usePersonStore } from "../stores/person";
 
 interface LocalModelProps {
   hairColor?: string;
   skinColor?: string;
-  mode?: "first person" | "third person";
+  mode: string;
+  modelId?: string;
   position: [number, number, number];
   rotation: [number, number, number, string];
   localModelRef: React.RefObject<CustomEcctrlRigidBody | null>;
@@ -27,8 +35,60 @@ const LocalModel = ({
   const { socket } = useSocket();
   const previousPosition = useRef({ x: 0, y: 0, z: 0 });
   const previousRotation = useRef({ x: 0, y: 0, z: 0, w: 1 });
+  const localModelChatMessage = usePersonStore(
+    (state) => state.localChatMessage
+  );
+  const setLocalChatMessage = usePersonStore(
+    (state) => state.setLocalChatMessage
+  );
   const currentAnimation = useGame((state) => state.curAnimation);
   const pressedRef = useRef<boolean>(false);
+  const keyboardMap: KeyboardControlsEntry[] = useMemo(
+    () => [
+      { name: "forward", keys: ["ArrowUp", "KeyW"] },
+      { name: "backward", keys: ["ArrowDown", "KeyS"] },
+      { name: "leftward", keys: ["ArrowLeft", "KeyA"] },
+      { name: "rightward", keys: ["ArrowRight", "KeyD"] },
+      { name: "jump", keys: ["Space"] },
+      { name: "run", keys: ["Shift"] },
+      // Optional animation key map
+      { name: "action1", keys: ["1"] },
+      { name: "action2", keys: ["2"] },
+      { name: "action3", keys: ["3"] },
+      { name: "action4", keys: ["KeyF"] },
+    ],
+    []
+  );
+
+  const characterURL = "/chibi_guy/scene.gltf";
+
+  const animationSet = {
+    idle: "Idle",
+    walk: "Walk",
+    run: "Run",
+    Jump: "Static Pose",
+    JumpIdle: "Static Pose",
+    JumpLand: "Idle",
+    Fall: "Idle", // This is for falling from high sky
+    // Currently support four additional animations
+    action1: "Surprise",
+    action2: "Clapping",
+    action3: "Clapping",
+    action4: "Clapping",
+  };
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (localModelChatMessage) {
+      console.log(localModelChatMessage);
+      timeoutId = setTimeout(() => {
+        setLocalChatMessage(null);
+      }, 12000);
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [localModelChatMessage]);
 
   useFrame(() => {
     if (!localModelRef.current) return;
@@ -86,36 +146,6 @@ const LocalModel = ({
     previousPosition.current = { ...currentPos };
     previousRotation.current = { ...currentRot };
   });
-  const keyboardMap = [
-    { name: "forward", keys: ["ArrowUp", "KeyW"] },
-    { name: "backward", keys: ["ArrowDown", "KeyS"] },
-    { name: "leftward", keys: ["ArrowLeft", "KeyA"] },
-    { name: "rightward", keys: ["ArrowRight", "KeyD"] },
-    { name: "jump", keys: ["Space"] },
-    { name: "run", keys: ["Shift"] },
-    // Optional animation key map
-    { name: "action1", keys: ["1"] },
-    { name: "action2", keys: ["2"] },
-    { name: "action3", keys: ["3"] },
-    { name: "action4", keys: ["KeyF"] },
-  ];
-
-  const characterURL = "/chibi_guy/scene.gltf";
-
-  const animationSet = {
-    idle: "Idle",
-    walk: "Walk",
-    run: "Run",
-    Jump: "Static Pose",
-    JumpIdle: "Static Pose",
-    JumpLand: "Idle",
-    Fall: "Idle", // This is for falling from high sky
-    // Currently support four additional animations
-    action1: "Surprise",
-    action2: "Clapping",
-    action3: "Clapping",
-    action4: "Clapping",
-  };
 
   //   const { capsuleHalfHeight, capsuleRadius, floatHeight } = useControls({
   //     capsuleHalfHeight: { value: 0.1, min: 0.1, max: 2, step: 0.01 },
@@ -155,6 +185,31 @@ const LocalModel = ({
         >
           <ChibiGuy hairColor={hairColor} skinColor={skinColor} />
         </EcctrlAnimation>
+        <Billboard follow={true} lockX={false} lockY={false} lockZ={false}>
+          {localModelChatMessage && (
+            <RoundedBox
+              position={[0, 1, 0]}
+              args={[
+                Math.max(1, localModelChatMessage.length * 0.2),
+                Math.max(0.5, localModelChatMessage.length * 0.02),
+                0.001,
+              ]}
+              radius={0.1}
+              smoothness={4}
+            >
+              <meshBasicMaterial color="white" />
+            </RoundedBox>
+          )}
+          <Text
+            position={[0, 1, 0.01]}
+            fontSize={0.3}
+            color="black"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {localModelChatMessage}
+          </Text>
+        </Billboard>
       </Ecctrl>
     </KeyboardControls>
   );

@@ -32,6 +32,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
+import ChatBox from "../../components/ChatBox";
 
 export type Data = {
   id: string;
@@ -58,6 +59,7 @@ interface ExhibitionSceneProps {
   selectedItem: Data | null;
   data: Data[];
   isEditDisabled?: boolean;
+  isChatOpen: boolean;
 }
 const state = proxy<{
   current: string | null;
@@ -83,6 +85,7 @@ const ExhibitionScene = ({
   selectedItem,
   data,
   isEditDisabled,
+  isChatOpen,
 }: ExhibitionSceneProps) => {
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
@@ -320,7 +323,6 @@ const ExhibitionScene = ({
           rotation: child.rotation.toArray(),
           scale: child.scale.toArray(),
         }));
-        console.log(items);
         mutate(items || []);
       },
       { disabled: isEditDisabled }
@@ -408,7 +410,7 @@ const ExhibitionScene = ({
   }, [mode, currentFrame, onShowPanel]);
 
   return (
-    <mesh>
+    <>
       <ambientLight intensity={2} />
       <pointLight position={[10, 10, 10]} />
       <hemisphereLight
@@ -425,19 +427,21 @@ const ExhibitionScene = ({
       <pointLight position={[0, 5, 5]} intensity={0.6} />
       <Environment preset="city" />
       <Physics timeStep={"vary"}>
-        {(mode === "first person" || mode === "third person") &&
-          persons.map((p) =>
-            p.id === socket.id ? (
-              <LocalModel
-                key={p.id}
-                hairColor={p.colors.hairColor}
-                skinColor={p.colors.skinColor}
-                mode={mode}
-                position={p.position}
-                rotation={p.rotation}
-                localModelRef={localModelRef}
-              />
-            ) : (
+        {persons.map((p) =>
+          p.id === socket.id &&
+          (mode === "first person" || mode === "third person") ? (
+            <LocalModel
+              key={p.id}
+              modelId={p.id}
+              hairColor={p.colors.hairColor}
+              skinColor={p.colors.skinColor}
+              mode={mode}
+              position={p.position}
+              rotation={p.rotation}
+              localModelRef={localModelRef}
+            />
+          ) : (
+            p.id !== socket.id && (
               <RemoteModel
                 key={p.id}
                 modelId={p.id}
@@ -445,7 +449,8 @@ const ExhibitionScene = ({
                 skinColor={p.colors.skinColor}
               />
             )
-          )}
+          )
+        )}
         <RigidBody type="fixed" colliders="trimesh">
           <ExhibitionModel scale={1.8} name="exhibition" />
         </RigidBody>
@@ -522,10 +527,10 @@ const ExhibitionScene = ({
                                 position={[1, 0.44, 0.05]}
                                 center
                                 style={{
-                                  color: "white",
+                                  color: "black",
                                   fontSize: "14px",
                                   textAlign: "center",
-                                  background: "rgba(0, 0, 0, 0.7)",
+                                  background: "white",
                                   padding: "5px",
                                   width: "120px",
                                   borderRadius: "5px",
@@ -538,10 +543,10 @@ const ExhibitionScene = ({
                                 position={[-0.9, 0.55, 0.05]}
                                 center
                                 style={{
-                                  color: "white",
+                                  color: "black",
                                   fontSize: "14px",
                                   textAlign: "center",
-                                  background: "rgba(0, 0, 0, 0.7)",
+                                  background: "white",
                                   padding: "5px",
                                   width: "120px",
                                   borderRadius: "5px",
@@ -689,7 +694,7 @@ const ExhibitionScene = ({
           />
         </>
       )}
-    </mesh>
+    </>
   );
 };
 
@@ -718,6 +723,7 @@ const ExhibitionPage = () => {
   const { progress } = useProgress();
   const cameraControlsRef = useRef<CameraControls>(null);
   const [selectedItem, setSelectedItem] = useState<Data | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [pressed, setPressed] = useState({
     up: false,
     right: false,
@@ -745,6 +751,18 @@ const ExhibitionPage = () => {
         break;
     }
   };
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (snap.viewMode !== "camera" && event.key.toLowerCase() === "t") {
+        setIsChatOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [snap.viewMode]);
+
   useEffect(() => {
     if (snap.viewMode !== "camera") {
       setTimeout(() => {
@@ -931,10 +949,22 @@ const ExhibitionPage = () => {
             showIcon={!selectedItem}
             selectedItem={selectedItem}
             isEditDisabled={true}
+            isChatOpen={isChatOpen}
           />
           <Sparkles size={30} scale={80} count={800} />
         </Suspense>
       </Canvas>
+      {snap.viewMode !== "camera" &&
+        isChatOpen &&
+        (document.exitPointerLock(),
+        (
+          <ChatBox
+            isOpen={isChatOpen}
+            onClose={() => (
+              canvasRef.current?.requestPointerLock(), setIsChatOpen(false)
+            )}
+          />
+        ))}
       {selectedItem &&
         (document.exitPointerLock(),
         (

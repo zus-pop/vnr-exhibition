@@ -68,6 +68,11 @@ io.on("connection", (socket) => {
     socket.broadcast.emit(`remoteReceiveUpdate:${data.id}`, data);
   });
 
+  socket.on("localModelChatMessage", (data) => {
+    console.log(`Receive chat from local: ${data.id}`);
+    socket.broadcast.emit(`remoteReceiveChatMessage:${data.id}`, data);
+  });
+
   new Promise((resolve) => setTimeout(resolve, 1000)).then(() => {
     console.log(persons);
     console.log(persons.length);
