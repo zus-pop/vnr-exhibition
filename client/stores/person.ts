@@ -15,11 +15,9 @@ export interface Person {
 
 interface PersonState {
   persons: Person[] | [];
-  localChatMessage: string | null;
   addPerson: (person: Person) => void;
   removePerson: (person: Person) => void;
   setPersons: (persons: Person[]) => void;
-  setLocalChatMessage: (message: string | null) => void;
 }
 
 export const usePersonStore = create<PersonState>()(
@@ -32,8 +30,6 @@ export const usePersonStore = create<PersonState>()(
         const newPersons = state.persons.filter((p) => p.id !== person.id);
         return { persons: newPersons };
       }),
-    setPersons: (persons) => set((state) => ({ persons: [...persons] })),
-    setLocalChatMessage: (message) =>
-      set(() => ({ localChatMessage: message })),
+    setPersons: (persons) => set(() => ({ persons: [...persons] })),
   }))
 );

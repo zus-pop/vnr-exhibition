@@ -1,32 +1,41 @@
-// ChatBox.tsx
-import React, { useState } from "react";
-import { useSocket } from "../provider/SocketProvider";
-import { usePersonStore } from "../stores/person";
+import { useSocket } from "@/provider/SocketProvider";
+import React, { useEffect, useRef, useState } from "react";
 
 interface ChatBoxProps {
   isOpen: boolean;
   onClose: () => void;
+  onSendCallback: (message: string) => void;
 }
 
-const ChatBox: React.FC<ChatBoxProps> = ({ isOpen, onClose }) => {
+const ChatBox: React.FC<ChatBoxProps> = ({
+  isOpen,
+  onClose,
+  onSendCallback,
+}) => {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const { socket } = useSocket();
-  const setLocalChatMessage = usePersonStore(
-    (state) => state.setLocalChatMessage
-  );
 
   const sendMessage = () => {
     if (input.trim()) {
       setMessages([...messages, input]);
       setInput("");
-      setLocalChatMessage(input);
+      onSendCallback(input);
       socket.emit("localModelChatMessage", {
         id: socket.id,
         message: input,
       });
     }
   };
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -70,7 +79,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ isOpen, onClose }) => {
           }}
         >
           <input
-            autoFocus
+            ref={inputRef}
             type="text"
             value={input}
             onKeyDownCapture={(e) => e.stopPropagation()}

@@ -12,9 +12,8 @@ import Ecctrl, {
   EcctrlAnimation,
   useGame,
 } from "ecctrl";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import ChibiGuy from "./ChibiGuy";
-import { usePersonStore } from "../stores/person";
 
 interface LocalModelProps {
   hairColor?: string;
@@ -24,6 +23,8 @@ interface LocalModelProps {
   position: [number, number, number];
   rotation: [number, number, number, string];
   localModelRef: React.RefObject<CustomEcctrlRigidBody | null>;
+  localModelChatMessage: string | null;
+  clearLocalChatMessage: () => void;
 }
 
 const LocalModel = ({
@@ -31,16 +32,12 @@ const LocalModel = ({
   skinColor,
   mode,
   localModelRef,
+  localModelChatMessage,
+  clearLocalChatMessage,
 }: LocalModelProps) => {
   const { socket } = useSocket();
   const previousPosition = useRef({ x: 0, y: 0, z: 0 });
   const previousRotation = useRef({ x: 0, y: 0, z: 0, w: 1 });
-  const localModelChatMessage = usePersonStore(
-    (state) => state.localChatMessage
-  );
-  const setLocalChatMessage = usePersonStore(
-    (state) => state.setLocalChatMessage
-  );
   const currentAnimation = useGame((state) => state.curAnimation);
   const pressedRef = useRef<boolean>(false);
   const keyboardMap: KeyboardControlsEntry[] = useMemo(
@@ -80,10 +77,9 @@ const LocalModel = ({
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (localModelChatMessage) {
-      console.log(localModelChatMessage);
       timeoutId = setTimeout(() => {
-        setLocalChatMessage(null);
-      }, 12000);
+        clearLocalChatMessage();
+      }, 8000);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
@@ -185,31 +181,33 @@ const LocalModel = ({
         >
           <ChibiGuy hairColor={hairColor} skinColor={skinColor} />
         </EcctrlAnimation>
-        <Billboard follow={true} lockX={false} lockY={false} lockZ={false}>
-          {localModelChatMessage && (
-            <RoundedBox
-              position={[0, 1, 0]}
-              args={[
-                Math.max(1, localModelChatMessage.length * 0.2),
-                Math.max(0.5, localModelChatMessage.length * 0.02),
-                0.001,
-              ]}
-              radius={0.1}
-              smoothness={4}
+        <Suspense fallback={null}>
+          <Billboard follow={true} lockX={false} lockY={false} lockZ={false}>
+            {localModelChatMessage && (
+              <RoundedBox
+                position={[0, 1, 0]}
+                args={[
+                  Math.max(1, localModelChatMessage.length * 0.2),
+                  Math.max(0.5, localModelChatMessage.length * 0.02),
+                  0.001,
+                ]}
+                radius={0.1}
+                smoothness={4}
+              >
+                <meshBasicMaterial color="white" />
+              </RoundedBox>
+            )}
+            <Text
+              position={[0, 1, 0.01]}
+              fontSize={0.3}
+              color="black"
+              anchorX="center"
+              anchorY="middle"
             >
-              <meshBasicMaterial color="white" />
-            </RoundedBox>
-          )}
-          <Text
-            position={[0, 1, 0.01]}
-            fontSize={0.3}
-            color="black"
-            anchorX="center"
-            anchorY="middle"
-          >
-            {localModelChatMessage}
-          </Text>
-        </Billboard>
+              {localModelChatMessage}
+            </Text>
+          </Billboard>
+        </Suspense>
       </Ecctrl>
     </KeyboardControls>
   );

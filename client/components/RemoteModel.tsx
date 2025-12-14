@@ -136,7 +136,7 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
       timeoutId = setTimeout(() => {
         console.log("Clearing chat message");
         setChatMessage(null);
-      }, 12000);
+      }, 8000);
     });
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
