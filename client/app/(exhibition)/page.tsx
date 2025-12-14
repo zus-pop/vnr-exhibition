@@ -31,7 +31,7 @@ import axios from "axios";
 import { CustomEcctrlRigidBody } from "ecctrl";
 import { button, buttonGroup, folder, useControls } from "leva";
 import Image from "next/image";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Color, Group, Vector3 } from "three";
 import { proxy, useSnapshot } from "valtio";
@@ -554,9 +554,9 @@ const ExhibitionPage = () => {
       return response.data;
     },
   });
-  //   const isEditDisabled = useMemo(() => {
-  //     return data.find((d) => d.id === "0")?.config.isEditDisabled || false;
-  //   }, [data]);
+  const isEditDisabled = useMemo(() => {
+    return data.find((d) => d.id === "0")?.config.isEditDisabled || false;
+  }, [data]);
   const { isOpenGuide } = useControls({
     "Chế độ xem": buttonGroup({
       Camera: () => (state.viewMode = "camera"),
@@ -805,7 +805,7 @@ const ExhibitionPage = () => {
             onShowPanel={(item) => setSelectedItem(item)}
             showIcon={!selectedItem}
             selectedItem={selectedItem}
-            isEditDisabled={true}
+            isEditDisabled={isEditDisabled}
           />
           <Sparkles size={30} scale={80} count={800} />
           <Preload all />
