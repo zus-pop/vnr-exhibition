@@ -56,7 +56,6 @@ interface ExhibitionSceneProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   cameraControlsRef: React.RefObject<CameraControls | null>;
   onShowPanel: (item: Data) => void;
-  showIcon: boolean;
   mode: string;
   selectedItem: Data | null;
   data: Data[];
@@ -83,7 +82,6 @@ const modes: ["translate", "rotate", "scale"] = [
 const ExhibitionScene = ({
   cameraControlsRef,
   onShowPanel,
-  showIcon,
   mode,
   selectedItem,
   data,
@@ -419,7 +417,6 @@ const ExhibitionScene = ({
                     }
                     scale={4}
                     onShowPanel={onShowPanel}
-                    showIcon={showIcon}
                     mode={mode}
                     isClose={currentFrame === item}
                     isOpen={!!selectedItem}
@@ -456,7 +453,6 @@ const ExhibitionScene = ({
                 key={item.name}
                 name={item.name}
                 onShowPanel={onShowPanel}
-                showIcon={showIcon}
                 mode={mode}
                 isClose={currentFrame === item}
                 isOpen={!!selectedItem}
@@ -803,7 +799,6 @@ const ExhibitionPage = () => {
             cameraControlsRef={cameraControlsRef}
             canvasRef={canvasRef}
             onShowPanel={(item) => setSelectedItem(item)}
-            showIcon={!selectedItem}
             selectedItem={selectedItem}
             isEditDisabled={isEditDisabled}
           />

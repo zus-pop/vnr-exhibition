@@ -78,7 +78,6 @@ interface PaintingFrameProps {
     options?: CameraMovementOptions
   ) => void;
   onShowPanel: (item: Data) => void;
-  showIcon: boolean;
   item: Data;
   mode?: string;
   isClose?: boolean;
@@ -412,31 +411,33 @@ export default function PaintingFrame({
               <meshNormalMaterial />
             </mesh>
           )}
-          <Html
-            position={[0, 0.55, 0.05]}
-            center
-            style={{
-              pointerEvents: "none",
-            }}
-          >
-            <div
+          {!props.isOpen && (
+            <Html
+              position={[0, 0.55, 0.05]}
+              center
               style={{
-                width: "24px",
-                height: "24px",
-                borderRadius: "50%",
-                background: "rgba(255, 255, 255, 0.8)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "14px",
-                fontWeight: "bold",
-                color: "black",
-                border: "1px solid black",
+                pointerEvents: "none",
               }}
             >
-              {props.item.id}
-            </div>
-          </Html>
+              <div
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                  background: "rgba(255, 255, 255, 0.8)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  color: "black",
+                  border: "1px solid black",
+                }}
+              >
+                {props.item.id}
+              </div>
+            </Html>
+          )}
         </group>
       </group>
     </group>
