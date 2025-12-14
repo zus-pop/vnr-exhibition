@@ -78,8 +78,9 @@ const LocalModel = ({
     let timeoutId: NodeJS.Timeout;
     if (localModelChatMessage) {
       timeoutId = setTimeout(() => {
+        console.log("Clearing local model chat message");
         clearLocalChatMessage();
-      }, 8000);
+      }, 5000);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);

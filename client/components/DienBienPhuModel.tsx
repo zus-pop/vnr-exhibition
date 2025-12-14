@@ -78,7 +78,7 @@ export default function DienBienPhuModel({
             {!props.isOpen && (
               <>
                 <Html
-                  position={[0.33, 0.33, 0.05]}
+                  position={[0.44, 0.22, 0.05]}
                   center
                   style={{
                     color: "black",
@@ -94,7 +94,7 @@ export default function DienBienPhuModel({
                   Nhấn E để xem chi tiết
                 </Html>
                 <Html
-                  position={[-0.4, 0.33, 0.05]}
+                  position={[-0.44, 0.22, 0.05]}
                   center
                   style={{
                     color: "black",
@@ -154,6 +154,31 @@ export default function DienBienPhuModel({
           </mesh>
         </>
       )}
+      <Html
+        position={[0, 0, 0.05]}
+        center
+        style={{
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            width: "24px",
+            height: "24px",
+            borderRadius: "50%",
+            background: "rgba(255, 255, 255, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "12px",
+            fontWeight: "bold",
+            color: "black",
+            border: "1px solid black",
+          }}
+        >
+          {props.item.id}
+        </div>
+      </Html>
     </group>
   );
 }

@@ -132,11 +132,12 @@ const RemoteModel = ({ modelId, hairColor, skinColor }: RemoteModelProps) => {
 
     socket.on(`remoteReceiveChatMessage:${modelId}`, (data) => {
       console.log("RemoteModel received chat message:", data);
+      if (timeoutId) clearTimeout(timeoutId);
       setChatMessage(data.message);
       timeoutId = setTimeout(() => {
         console.log("Clearing chat message");
         setChatMessage(null);
-      }, 8000);
+      }, 5000);
     });
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
